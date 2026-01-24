@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/layout.css">
+    <title>Sports4U - Admin Dashboard</title>
+</head>
+
+<body class="bg-light">
+
+    <div class="container-fluid">
+        <div class="row">
+
+            <!-- SIDEBAR -->
+            <aside class="col-lg-2 col-md-3 bg-dark text-white min-vh-100 p-3">
+                <h5 class="fw-bold mb-4">ADMIN</h5>
+
+                <ul class="nav flex-column gap-1">
+                    <li>
+                        <a class="nav-link text-white active" href="dashboard.html">
+                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                        </a>
+                    </li>
+
+                    <li class="mt-3 fw-bold small">Quản lý</li>
+
+                    <li>
+                        <a class="nav-link text-white" href="users.html">
+                            <i class="bi bi-people me-2"></i> Tài khoản
+                        </a>
+                    </li>
+
+                    <li>
+                        <a class="nav-link text-white" data-bs-toggle="collapse" href="#sportMenu">
+                            <i class="bi bi-tags me-2"></i> Môn thể thao
+                        </a>
+
+                        <div class="collapse show ps-3" id="sportMenu">
+                            <a class="nav-link text-white-50" href="products.html?category=pickleball">Pickleball</a>
+                            <a class="nav-link text-white-50" href="products.html?category=football">Football</a>
+                            <a class="nav-link text-white-50" href="products.html?category=basketball">Basketball</a>
+                        </div>
+                    </li>
+
+                    <li>
+                        <a class="nav-link text-white" href="orders.html">
+                            <i class="bi bi-receipt me-2"></i> Đơn hàng
+                        </a>
+                    </li>
+                </ul>
+            </aside>
+
+            <!-- CONTENT -->
+            <main class="col-lg-10 p-4">
+                <h4 class="mb-4">Thêm / Sửa sản phẩm</h4>
+
+                <form class="card shadow-sm p-4">
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên sản phẩm</label>
+                        <input type="text" class="form-control" placeholder="Nhập tên sản phẩm">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Giá</label>
+                            <input type="number" class="form-control" placeholder="Giá sản phẩm">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Số lượng hàng hóa</label>
+                            <input type="number" class="form-control" placeholder="Số lượng hàng hóa">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" rows="3" placeholder="Mô tả sản phẩm"></textarea>
+                    </div>
+
+                    <!-- ẢNH SẢN PHẨM -->
+                    <div class="mb-4">
+                        <label class="form-label">Ảnh sản phẩm</label>
+
+                        <div class="d-flex align-items-center gap-4">
+                            <!-- PREVIEW -->
+                            <img id="previewImage" src="../assets/products/placeholder.png" class="border rounded"
+                                width="120" height="120" style="object-fit: cover">
+
+                            <!-- INPUT FILE -->
+                            <div>
+                                <input type="file" class="form-control" accept="image/*"
+                                    onchange="previewProductImage(event)">
+                                <small class="text-muted">
+                                    JPG, PNG, WEBP. Tối đa 2MB
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-dark">
+                            <i class="bi bi-save"></i> Lưu
+                        </button>
+                        <a href="products.html" class="btn btn-outline-secondary">
+                            Hủy
+                        </a>
+                    </div>
+
+                </form>
+            </main>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/pages/admin.js"></script>
+</body>
+
+</html>
