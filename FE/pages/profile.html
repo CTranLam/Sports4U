@@ -75,12 +75,17 @@
 
 
                         <!-- Auth -->
-                        <a href="./login.html" class="btn btn-outline-secondary btn-sm d-none d-sm-inline-block">
-                            Đăng nhập
-                        </a>
-                        <a href="./register.html" class="btn btn-dark btn-sm d-none d-sm-inline-block">
-                            Đăng ký
-                        </a>
+                        <div id="auth-buttons" class="d-flex gap-2">
+                            <a href="./login.html" class="btn btn-outline-secondary btn-sm d-none d-sm-inline-block">
+                                Đăng nhập
+                            </a>
+                            <a href="./register.html" class="btn btn-dark btn-sm d-none d-sm-inline-block">
+                                Đăng ký
+                            </a>
+                        </div>
+                        <button id="logoutBtn" class="btn btn-outline-danger btn-sm d-none">
+                            Đăng xuất
+                        </button>
                     </div>
                 </div>
             </div>
@@ -116,34 +121,37 @@
 
                                 <div class="col-md-6">
                                     <label class="form-label">Họ và tên</label>
-                                    <input type="text" class="form-control" value="Nguyễn Văn A">
+                                    <input type="text" class="form-control" placeholder="Nhập họ và tên"
+                                        id="fullName" />
                                 </div>
 
                                 <div class="col-md-6">
                                     <label class="form-label">Email</label>
-                                    <input type="email" class="form-control" value="user@email.com" disabled>
+                                    <input type="email" class="form-control" value="" disabled>
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label">Số điện thoại</label>
-                                    <input type="text" class="form-control" placeholder="Nhập số điện thoại">
+                                    <label for="phone" class="form-label">Số điện thoại</label>
+                                    <input type="text" id="phone" class="form-control"
+                                        placeholder="Nhập số điện thoại" />
                                 </div>
 
                                 <div class="col-md-6">
-                                    <label class="form-label">Địa chỉ</label>
-                                    <input type="text" class="form-control" placeholder="Nhập địa chỉ">
+                                    <label for="address" class="form-label">Địa chỉ</label>
+                                    <input type="text" id="address" class="form-control" placeholder="Nhập địa chỉ" />
                                 </div>
 
                                 <div class="col-12">
                                     <label class="form-label">Mật khẩu</label>
-                                    <input type="password" class="form-control" placeholder="Không thay đổi vui lòng để trống">
+                                    <input type="password" class="form-control"
+                                        placeholder="Không thay đổi vui lòng để trống" id="password">
                                 </div>
 
                             </div>
 
                             <!-- ACTIONS -->
                             <div class="d-flex justify-content-end gap-2 mt-4">
-                                <button type="button" class="btn btn-outline-secondary">
+                                <button type="button" id="cancelProfileBtn" class="btn btn-outline-secondary">
                                     Hủy
                                 </button>
                                 <button type="submit" class="btn btn-dark">
@@ -200,11 +208,8 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/pages/home.js"></script>
-    <script>
-        initSearch();
-        initCart();
-    </script>
+    <script src="../js/utils/header.js"></script>
+    <script src="../js/pages/profile.js"></script>
 </body>
 
 </html>

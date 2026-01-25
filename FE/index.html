@@ -75,12 +75,19 @@
 
 
                         <!-- Auth -->
-                        <a href="./pages/login.html" class="btn btn-outline-secondary btn-sm d-none d-sm-inline-block">
-                            Đăng nhập
-                        </a>
-                        <a href="./pages/register.html" class="btn btn-dark btn-sm d-none d-sm-inline-block">
-                            Đăng ký
-                        </a>
+                        <div id="auth-buttons" class="d-flex gap-2">
+                            <a href="./pages/login.html"
+                                class="btn btn-outline-secondary btn-sm d-none d-sm-inline-block">
+                                Đăng nhập
+                            </a>
+                            <a href="./pages/register.html" class="btn btn-dark btn-sm d-none d-sm-inline-block">
+                                Đăng ký
+                            </a>
+                        </div>
+                        <button id="logoutBtn" class="btn btn-outline-danger btn-sm d-none">
+                            Đăng xuất
+                        </button>
+
                     </div>
                 </div>
             </div>
@@ -95,7 +102,8 @@
                             <span class="input-group-text bg-white border-end-0">
                                 <i class="bi bi-search"></i>
                             </span>
-                            <input type="text" class="form-control border-start-0" placeholder="Tìm kiếm môn thể thao" />
+                            <input type="text" class="form-control border-start-0"
+                                placeholder="Tìm kiếm môn thể thao" />
                         </div>
                     </div>
                 </div>
@@ -120,7 +128,7 @@
                     View all
                 </a>
             </div>
-            <div class="row g-3">
+            <div class="row g-3" id="pickleball-products">
                 <div class="col-lg-3 col-md-4 col-sm-6">
                     <a href="pages/product-detail.html?id=1" class="text-decoration-none text-dark">
 
@@ -205,7 +213,7 @@
                 <a href="pages/product-list.html?category=pickleball" class="text-decoration-none small">View all</a>
             </div>
 
-            <div class="row g-3">
+            <div class="row g-3" id="badminton-products">
                 <div class="col-lg-3 col-md-4 col-sm-6">
                     <a href="pages/product-detail.html?id=1" class="text-decoration-none text-dark">
 
@@ -327,10 +335,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/pages/home.js"></script>
-    <script>
-        initSearch();
-        initCart();
-    </script>
+    <script src="../js/utils/header.js"></script>
 </body>
 
 </html>
