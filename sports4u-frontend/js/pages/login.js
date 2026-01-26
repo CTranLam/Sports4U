@@ -26,6 +26,12 @@ function handleLogin(e){
         alert("Đăng nhập thành công");
         window.location.href = "../index.html";
     }
+    else if(email === "admin@gmail.com" && password === "123456"){
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("userEmail", email);
+        alert("Đăng nhập thành công");
+        window.location.href = "../../pages/admin/dashboard.html";
+    }
     else{
         alert("Sai email hoặc mật khẩu");
     }
