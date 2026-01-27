@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initAuthUI();
     initLogout();
     initCart();
+    initAuthGuard();
 });
 
 function initAuthUI() {
@@ -42,4 +43,17 @@ function initCart() {
 
     let cartCount = localStorage.getItem("cartCount") || 2;
     cartBadge.innerText = cartCount;
+}
+
+function initAuthGuard() {
+    //css attribute selector 
+    const profileLink = document.querySelector('a[href="./profile.html"]');
+    // console.log(profileLink);
+    profileLink?.addEventListener("click", (e) => {
+        const isLoggedIn = localStorage.getItem("isLoggedIn");
+        if (!isLoggedIn) {
+            e.preventDefault(); // ngăn chuyển trang giữ user ở trang hiện tại
+            alert("Vui lòng đăng nhập");
+        }
+    });
 }
