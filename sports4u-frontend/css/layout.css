@@ -1,0 +1,132 @@
+/* ============= HEADER HOVER EFFECTS ============= */
+
+header {
+    background: #ffffff;
+    border-bottom: 3px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+/* Navbar Brand */
+header .navbar-brand {
+    font-size: 1.4rem;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+header .navbar-brand:hover {
+    color: #dc3545 !important;
+    text-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+    transform: scale(1.05);
+}
+
+/* Nav Links - Hover effect with underline */
+header .nav-link {
+    position: relative;
+    color: #333 !important;
+    font-weight: 500;
+    padding-bottom: 8px !important;
+    transition: all 0.3s ease;
+}
+
+header .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #dc3545, #fd7e14);
+    transform: translateX(-50%);
+    transition: width 0.3s ease;
+}
+
+header .nav-link:hover {
+    color: #dc3545 !important;
+}
+
+header .nav-link:hover::after {
+    width: 100%;
+}
+
+/* Buttons - Hover with glow effect */
+header .btn-outline-dark,
+header .btn-outline-secondary {
+    border-width: 2px;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+}
+
+header .btn-outline-dark:hover,
+header .btn-outline-secondary:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
+    transform: translateY(-2px);
+}
+
+header .btn-dark {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+}
+
+header .btn-dark:hover {
+    background-color: #bb2d3b;
+    border-color: #bb2d3b;
+    box-shadow: 0 4px 16px rgba(220, 53, 69, 0.3);
+    transform: translateY(-2px);
+}
+
+header .btn-outline-danger {
+    border-width: 2px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+header .btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
+    transform: translateY(-2px);
+}
+
+
+/* Cart icon hover */
+header .btn-outline-dark:hover i {
+    animation: bounce 0.6s ease;
+}
+
+/* Header shadow on scroll effect */
+header.scrolled {
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+    border-bottom-color: #dc3545;
+}
+
+/* ============= CARD HOVER EFFECTS ============= */
+
+/* Product cards - light hover */
+.card {
+    transition: box-shadow 0.3s ease;
+    text-align: center;
+}
+
+.card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Center product info (for index.html layout) */
+.card div:last-child {
+    text-align: center;
+}
+
+/* Order items - light hover */
+.order-item {
+    transition: box-shadow 0.3s ease;
+}
+
+.order-item:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}

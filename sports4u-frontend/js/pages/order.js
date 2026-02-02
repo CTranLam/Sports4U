@@ -1,6 +1,9 @@
+import { initPagination } from '../utils/pagination.js';
+
 document.addEventListener("DOMContentLoaded", () => {
     initOrderTabs();
     initOrderClick();
+    initPagination('paginationContainer', '.order-item', 4);
 });
 
 function initOrderTabs() {

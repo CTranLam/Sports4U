@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initLogout();
     initCart();
     initAuthGuard();
+    initHeaderScrollEffect();
 });
 
 function initAuthUI() {
@@ -54,6 +55,18 @@ function initAuthGuard() {
         if (!isLoggedIn) {
             e.preventDefault(); // ngăn chuyển trang giữ user ở trang hiện tại
             alert("Vui lòng đăng nhập");
+        }
+    });
+}
+
+function initHeaderScrollEffect() {
+    const header = document.querySelector("header");
+    
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 50) {
+            header?.classList.add("scrolled");
+        } else {
+            header?.classList.remove("scrolled");
         }
     });
 }

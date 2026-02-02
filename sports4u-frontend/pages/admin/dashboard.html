@@ -4,9 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/layout.css">
+
     <title>Sports4U - Admin Dashboard</title>
 </head>
 
@@ -15,7 +17,6 @@
     <div class="container-fluid">
         <div class="row">
 
-            <!-- SIDEBAR -->
             <aside class="col-lg-2 col-md-3 bg-dark text-white min-vh-100 p-3">
                 <h5 class="fw-bold mb-4">ADMIN</h5>
 
@@ -40,9 +41,9 @@
                         </a>
 
                         <div class="collapse show ps-3" id="sportMenu">
-                            <a class="nav-link text-white-50" href="products.html?category=pickleball">Pickleball</a>
-                            <a class="nav-link text-white-50" href="products.html?category=football">Football</a>
-                            <a class="nav-link text-white-50" href="products.html?category=basketball">Basketball</a>
+                            <a class="nav-link text-white-50" href="#">Pickleball</a>
+                            <a class="nav-link text-white-50" href="#">Football</a>
+                            <a class="nav-link text-white-50" href="#">Basketball</a>
                         </div>
                     </li>
 
@@ -52,12 +53,16 @@
                         </a>
                     </li>
                 </ul>
+
+                <!-- LOGOUT BUTTON -->
+                <hr class="bg-white my-4">
+                <button id="logoutBtn" class="btn btn-danger btn-sm w-100">
+                    <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
+                </button>
             </aside>
 
-            <!-- CONTENT -->
             <main class="col-lg-10 col-md-9 p-4">
                 <h3 class="mb-4">Trang quản trị</h3>
-
                 <div class="row g-4">
                     <div class="col-md-3">
                         <div class="card shadow-sm">
@@ -86,12 +91,47 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="row g-4 mt-4">
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-3">Doanh thu theo tháng</h6>
+                                <canvas id="revenueChart" height="120"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-3">Tỉ lệ sản phẩm theo môn</h6>
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4 mt-1">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-3">Đơn hàng 7 ngày gần nhất</h6>
+                                <canvas id="orderChart" height="100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </main>
 
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../../js/pages/dashboard.js"></script>
+
 </body>
 
 </html>
