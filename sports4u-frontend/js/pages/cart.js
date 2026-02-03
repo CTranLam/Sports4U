@@ -34,7 +34,6 @@ function bindCheckAll({ checkAll, itemChecks }) {
 }
 
 function bindSingleCheck({ checkAll, itemChecks }) {
-    // callback khi check/uncheck từng item
     itemChecks.forEach(cb => {
         cb.addEventListener("change", () => {
             checkAll.checked = [...itemChecks].every(i => i.checked);

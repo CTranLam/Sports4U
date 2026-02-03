@@ -3,6 +3,7 @@ import { initPagination } from '../utils/pagination.js';
 document.addEventListener("DOMContentLoaded", () => {
     initOrderTabs();
     initOrderClick();
+    initCancelButtonVisibility();
     initPagination('paginationContainer', '.order-item', 4);
 });
 
@@ -47,5 +48,21 @@ function initOrderClick() {
 
             // redirect sang trang chi tiết
         });
+    });
+}
+
+function initCancelButtonVisibility() {
+    const orders = document.querySelectorAll(".order-item");
+
+    orders.forEach(order => {
+        const status = order.dataset.status;
+        const cancelBtn = order.querySelector(".btn-danger");
+
+        // Ẩn button nếu status là COMPLETED hoặc SHIPPING
+        if (status === "COMPLETED" || status === "SHIPPING") {
+            if (cancelBtn) {
+                cancelBtn.style.display = "none";
+            }
+        }
     });
 }

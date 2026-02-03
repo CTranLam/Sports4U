@@ -37,7 +37,6 @@ function initAddUserModal() {
 
     const addModal = new bootstrap.Modal(modalElement);
     
-    // Bắt sự kiện click button Thêm tài khoản
     if (addBtn) {
         addBtn.addEventListener("click", () => {
             addModal.show();

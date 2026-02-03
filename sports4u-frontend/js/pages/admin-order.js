@@ -24,7 +24,6 @@ function filterOrders() {
     tableRows.forEach(row => {
         let isVisible = true;
 
-        // Kiểm tra trạng thái
         if (statusFilter) {
             const statusButton = row.querySelector("td:nth-child(4) .dropdown-toggle");
             if (statusButton && statusButton.textContent.trim() !== statusFilter) {
