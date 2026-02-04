@@ -1,13 +1,6 @@
-/**
- * Hệ thống phân trang tái sử dụng cho tất cả các trang
- * Sử dụng: 
- * import { initPagination } from '../utils/pagination.js';
- * initPagination('paginationContainer', 'tbody tr', 4);
- */
-
 export function initPagination(containerId, rowSelector, itemsPerPage = 4) {
     let currentPage = 0;
-    const totalPages = 3; // Luôn phân 3 trang cố định
+    const totalPages = 3; 
 
     function showPage(page) {
         const rows = document.querySelectorAll(rowSelector);

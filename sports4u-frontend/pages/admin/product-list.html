@@ -15,7 +15,6 @@
     <div class="container-fluid">
         <div class="row">
 
-            <!-- SIDEBAR -->
             <aside class="col-lg-2 col-md-3 bg-dark text-white min-vh-100 p-3">
                 <h5 class="fw-bold mb-4">ADMIN</h5>
 
@@ -55,7 +54,6 @@
                     </li>
                 </ul>
 
-                <!-- LOGOUT BUTTON -->
                 <hr class="bg-white my-4">
                 <button id="logoutBtn" class="btn btn-danger btn-sm w-100">
                     <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
@@ -92,7 +90,6 @@
                     </tbody>
                 </table>
 
-                <!-- PAGINATION -->
                 <div class="d-flex justify-content-center mt-3 gap-1" id="paginationContainer">
                 </div>
 
@@ -102,7 +99,6 @@
     </div>
 
     <script>
-        // Sample data for products by category
         const categoryProducts = {
             pickleball: {
                 name: 'Pickleball',
@@ -135,7 +131,6 @@
             }
         };
 
-        // Get category from URL parameter
         const urlParams = new URLSearchParams(window.location.search);
         const category = urlParams.get('category');
 
