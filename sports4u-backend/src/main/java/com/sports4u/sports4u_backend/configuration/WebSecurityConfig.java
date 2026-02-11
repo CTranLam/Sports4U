@@ -23,7 +23,6 @@ import static org.springframework.http.HttpMethod.PUT;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@EnableWebMvc
 public class WebSecurityConfig {
     private final JwtTokenFilter jwtTokenFilter;
 

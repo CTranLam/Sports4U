@@ -22,7 +22,7 @@ public class UserEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Integer userId;
+    private Long userId;
 
     @Column(name = "email", length = 100, nullable = false, unique = true)
     private String email;
@@ -34,7 +34,7 @@ public class UserEntity implements UserDetails {
     private String fullName;
 
     @Column(name = "status", nullable = false)
-    private Integer status;
+    private Long status;
 
     @Column(name = "phone", length = 20)
     private String phone;

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/user")
@@ -87,5 +88,50 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", e.getMessage()));
         }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Email không được để trống"));
+        }
+
+        try {
+            userService.sendOtp(email);
+            return ResponseEntity.ok(Map.of("message", "OTP sẽ được gửi đến email của bạn"));
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Email không tồn tại"));
+        }
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String otp = request.get("otp");
+
+        boolean isValid = userService.verifyOtp(email, otp);
+
+        if (!isValid) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "OTP không hợp lệ hoặc đã hết hạn"));
+        }
+
+        return ResponseEntity.ok(Map.of("message", "Xác thực OTP thành công"));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody Map<String, String> request){
+        String email = request.get("email");
+        String newPassword = request.get("newPassword");
+        if(newPassword == null || newPassword.length() < 6){
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Mật khẩu mới không hợp lệ!"));
+        }
+        userService.setNewPassword(email, newPassword);
+        return ResponseEntity.ok(Map.of("message", "Mật khẩu đã được thay đổi"));
     }
 }
