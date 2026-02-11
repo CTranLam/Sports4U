@@ -6,6 +6,7 @@ import com.sports4u.sports4u_backend.dto.UserRegisterResponseDTO;
 import com.sports4u.sports4u_backend.dto.UserResponseDTO;
 import com.sports4u.sports4u_backend.entity.PasswordResetOTPEntity;
 import com.sports4u.sports4u_backend.entity.UserEntity;
+import com.sports4u.sports4u_backend.enums.OtpStatus;
 import com.sports4u.sports4u_backend.exception.NotFoundException;
 import com.sports4u.sports4u_backend.repository.PasswordResetOtpRepository;
 import com.sports4u.sports4u_backend.repository.UserRepository;
@@ -93,45 +94,72 @@ public class UserServiceImpl implements IUserService {
 
     @Transactional
     @Override
-    public void sendOtp(String email) {
-        UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("Email không tồn tại"));
+    public Long sendOtp(String email) {
 
-        String otp = String.valueOf(new Random().nextInt(999999));
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new NoSuchElementException("Email không tồn tại")
+                );
+
+        String otp = String.format("%06d", new Random().nextInt(999999));
 
         PasswordResetOTPEntity otpEntity = new PasswordResetOTPEntity();
         otpEntity.setUser(user);
         otpEntity.setOtpCode(otp);
         otpEntity.setExpirationTime(LocalDateTime.now().plusMinutes(3));
+        otpEntity.setStatus(OtpStatus.PENDING);
+
         passwordResetOtpRepository.save(otpEntity);
 
+        // DTO gửi qua RabbitMQ
         EmailMessageDTO emailMessageDTO = new EmailMessageDTO(
+                otpEntity.getId(),
                 email,
                 "Mã OTP đặt lại mật khẩu",
-                "OTP của bạn là: "+otp
+                "OTP của bạn là: " + otp
         );
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
-            @Override
-            public void afterCommit() {
-                emailProducerService.sendEmailAsync(emailMessageDTO);
-            }
-        });
-//        emailProducerService.sendEmailAsync(emailMessageDTO);
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCommit() {
+                        emailProducerService.sendEmailAsync(emailMessageDTO);
+                    }
+                }
+        );
+
+        return otpEntity.getId();
     }
+
 
     @Override
     public boolean verifyOtp(String email, String otp) {
-        UserEntity userEntity = userRepository.findByEmail(email)
+        UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("Email không tồn tại"));
-        PasswordResetOTPEntity entity = passwordResetOtpRepository.findTopByUser_UserIdAndIsUsedFalseOrderByCreatedAtDesc(userEntity.getUserId());
-        if (entity == null) return false;
-        if (!entity.getOtpCode().equals(otp)) return false;
-        if (entity.getExpirationTime().isBefore(LocalDateTime.now())) return false;
-        entity.setIsUsed(true);
+
+        PasswordResetOTPEntity entity = passwordResetOtpRepository.findTopByUser_UserIdOrderByCreatedAtDesc(user.getUserId());
+
+        if (entity == null) {
+            return false;
+        }
+        if (entity.getStatus() == OtpStatus.FAILED) {
+            return false;
+        }
+        if (entity.getStatus() == OtpStatus.VERIFIED) {
+            return false;
+        }
+        if (entity.getExpirationTime().isBefore(LocalDateTime.now())) {
+            return false;
+        }
+        if (!entity.getOtpCode().equals(otp)) {
+            return false;
+        }
+        entity.setStatus(OtpStatus.VERIFIED);
         passwordResetOtpRepository.save(entity);
+
         return true;
     }
+
 
     @Override
     public void setNewPassword(String email, String newPassword){

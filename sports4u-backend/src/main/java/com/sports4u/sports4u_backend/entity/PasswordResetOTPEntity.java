@@ -1,5 +1,6 @@
 package com.sports4u.sports4u_backend.entity;
 
+import com.sports4u.sports4u_backend.enums.OtpStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,8 +27,8 @@ public class PasswordResetOTPEntity {
     @Column(name = "expiration_time", nullable = false)
     private LocalDateTime expirationTime;
 
-    @Column(name = "is_used", nullable = false)
-    private Boolean isUsed = false;
+    @Enumerated(EnumType.STRING)
+    private OtpStatus status; // PENDING, SENT, FAILED, VERIFIED
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

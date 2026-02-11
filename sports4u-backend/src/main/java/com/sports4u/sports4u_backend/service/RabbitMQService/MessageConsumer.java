@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class MessageConsumer {
 
-    @RabbitListener(queues = RabbitMQConfig.QUEUE_NAME)
+    @RabbitListener(queues = RabbitMQConfig.MAIL_QUEUE)
     public void receiveMessage(String message) {
-        System.out.println("Message received from " + RabbitMQConfig.EXCHANGE_NAME + " : " + message);
+        System.out.println("Message received from " + RabbitMQConfig.MAIL_EXCHANGE + " : " + message);
     }
 }

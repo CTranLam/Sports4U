@@ -16,8 +16,8 @@ public class MessageProducer {
         System.out.println("Sending message: " + message);
 
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.EXCHANGE_NAME,
-                RabbitMQConfig.ROUTING_KEY,
+                RabbitMQConfig.MAIL_EXCHANGE,
+                RabbitMQConfig.MAIL_ROUTING_KEY,
                 message
         );
 

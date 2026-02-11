@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EmailMessageDTO{
+    private Long otpId;
     private String to;
     private String subject;
     private String content;
