@@ -4,6 +4,7 @@ import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -57,5 +58,29 @@ public class RabbitMQConfig {
         factory.setMessageConverter(jackson2JsonMessageConverter());
         return factory;
     }
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory mailListenerFactory(
+            ConnectionFactory connectionFactory) {
+
+        SimpleRabbitListenerContainerFactory factory =
+                new SimpleRabbitListenerContainerFactory();
+
+        factory.setConnectionFactory(connectionFactory);
+
+        factory.setMessageConverter(jackson2JsonMessageConverter());
+
+        factory.setAdviceChain(
+                RetryInterceptorBuilder.stateless()
+                        .maxAttempts(5)
+                        .backOffOptions(2000, 2, 10000)
+                        .build()
+        );
+
+        factory.setDefaultRequeueRejected(false);
+
+        return factory;
+    }
+
 }
 

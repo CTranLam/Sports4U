@@ -15,11 +15,22 @@ public class EmailConsumerService {
 
     @RabbitListener(
             queues = RabbitMQConfig.QUEUE_NAME,
-            containerFactory = "rabbitListenerContainerFactory"
+            containerFactory = "mailListenerFactory"
     )
     public void handleEmailMessage(EmailMessageDTO dto) {
+
         System.out.println("Received email to: " + dto.getTo());
-        emailService.sendEmail(dto.getTo(), dto.getSubject(), dto.getContent());
+        try {
+            emailService.sendEmail(
+                    dto.getTo(),
+                    dto.getSubject(),
+                    dto.getContent()
+            );
+            System.out.println("Email sent successfully!");
+
+        } catch (Exception e) {
+            System.out.println("Email failed: " + e.getMessage());
+            throw new RuntimeException("Email sending failed", e);
+        }
     }
 }
-
