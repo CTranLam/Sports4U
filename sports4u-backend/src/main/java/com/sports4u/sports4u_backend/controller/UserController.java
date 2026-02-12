@@ -1,32 +1,32 @@
 package com.sports4u.sports4u_backend.controller;
 
-import com.sports4u.sports4u_backend.dto.UserLoginDTO;
-import com.sports4u.sports4u_backend.dto.UserRegisterDTO;
-import com.sports4u.sports4u_backend.dto.UserRegisterResponseDTO;
-import com.sports4u.sports4u_backend.dto.UserResponseDTO;
+import com.sports4u.sports4u_backend.dto.*;
 import com.sports4u.sports4u_backend.entity.UserEntity;
+import com.sports4u.sports4u_backend.service.IAddressService;
 import com.sports4u.sports4u_backend.service.IUserService;
+import com.sports4u.sports4u_backend.service.impl.AddressServiceImpl;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
-    @Autowired
-    private IUserService userService;
+    private final IUserService userService;
+
+    private final IAddressService addressService;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserRegisterDTO userRegisterDTO, BindingResult result) {
@@ -151,5 +151,40 @@ public class UserController {
         catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Email không tồn tại"));
         }
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileDTO request,
+                                           Principal principal) {
+        userService.updateUserInfo(principal.getName(), request);
+
+        return ResponseEntity.ok("Cập nhật thành công");
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getUserProfile(Principal principal) {
+        try {
+            UserResponseDTO userResponseDTO = userService.findByUsername(principal.getName());
+            return ResponseEntity.ok(userResponseDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/provinces")
+    public ResponseEntity<?> getProvinces() {
+        return ResponseEntity.ok(
+                addressService.getAllProvinces()
+        );
+    }
+
+    @GetMapping("/wards")
+    public ResponseEntity<?> getWardsByProvince(
+            @RequestParam String provinceCode) {
+
+        return ResponseEntity.ok(
+                addressService.getWardsByProvince(provinceCode)
+        );
     }
 }

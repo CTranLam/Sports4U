@@ -14,4 +14,7 @@ public class UserResponseDTO {
     private String phone;
     private String role;
     private Long status;
+    private String privinceName;
+    private String wardName;
+    private String detailAddress;
 }

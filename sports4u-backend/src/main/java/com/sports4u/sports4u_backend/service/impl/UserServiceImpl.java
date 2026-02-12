@@ -1,15 +1,17 @@
 package com.sports4u.sports4u_backend.service.impl;
 
-import com.sports4u.sports4u_backend.dto.EmailMessageDTO;
-import com.sports4u.sports4u_backend.dto.UserRegisterDTO;
-import com.sports4u.sports4u_backend.dto.UserRegisterResponseDTO;
-import com.sports4u.sports4u_backend.dto.UserResponseDTO;
+import com.sports4u.sports4u_backend.converter.UserEntityToDTO;
+import com.sports4u.sports4u_backend.dto.*;
 import com.sports4u.sports4u_backend.entity.PasswordResetOTPEntity;
+import com.sports4u.sports4u_backend.entity.ProvinceEntity;
 import com.sports4u.sports4u_backend.entity.UserEntity;
+import com.sports4u.sports4u_backend.entity.WardEntity;
 import com.sports4u.sports4u_backend.enums.OtpStatus;
 import com.sports4u.sports4u_backend.exception.NotFoundException;
 import com.sports4u.sports4u_backend.repository.PasswordResetOtpRepository;
+import com.sports4u.sports4u_backend.repository.ProvinceRepository;
 import com.sports4u.sports4u_backend.repository.UserRepository;
+import com.sports4u.sports4u_backend.repository.WardRepository;
 import com.sports4u.sports4u_backend.service.IUserService;
 import com.sports4u.sports4u_backend.service.RabbitMQService.EmailConsumerService;
 import com.sports4u.sports4u_backend.service.RabbitMQService.EmailProducerService;
@@ -46,6 +48,12 @@ public class UserServiceImpl implements IUserService {
 
     private final RateLimitLoginService rateLimitLoginService;
 
+    private final ProvinceRepository provinceRepository;
+
+    private final WardRepository wardRepository;
+
+    private final UserEntityToDTO userEntityToDTO;
+
     @Transactional
     @Override
     public UserRegisterResponseDTO createUser(UserRegisterDTO userRegisterDTO) {
@@ -70,12 +78,8 @@ public class UserServiceImpl implements IUserService {
     public UserResponseDTO findByUsername(String userName) throws Exception {
         UserEntity userEntity= userRepository.findByEmail(userName)
                 .orElseThrow(() -> new Exception("Tài khoản không tồn tại"));
-        UserResponseDTO  userResponseDTO = new UserResponseDTO();
-        userResponseDTO.setUserId(userEntity.getUserId());
-        userResponseDTO.setUserName(userEntity.getEmail());
-        userResponseDTO.setPhone(userEntity.getPhone());
-        userResponseDTO.setRole(userEntity.getRole());
-        userResponseDTO.setStatus(1L);
+        UserResponseDTO userResponseDTO = new UserResponseDTO();
+        userResponseDTO = userEntityToDTO.convertToDTO(userEntity);
         return userResponseDTO;
     }
 
@@ -179,4 +183,36 @@ public class UserServiceImpl implements IUserService {
         userEntity.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(userEntity);
     }
+
+    @Transactional
+    @Override
+    public void updateUserInfo(String email, UpdateProfileDTO request) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        ProvinceEntity province = provinceRepository.findById(request.getProvinceId())
+                .orElseThrow(() -> new IllegalArgumentException("Province not found"));
+
+        WardEntity ward = wardRepository.findById(request.getWardId())
+                .orElseThrow(() -> new IllegalArgumentException("Ward not found"));
+
+        if (!ward.getProvince().getCode().equals(province.getCode())) {
+            throw new IllegalArgumentException("Ward does not belong to selected province");
+        }
+
+        user.setFullName(request.getFullName());
+        user.setPhone(request.getPhone());
+        user.setDetailAddress(request.getAddressDetail());
+        user.setProvince(province);
+        user.setWard(ward);
+
+        if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        }
+
+        userRepository.save(user);
+    }
+
+
+
 }

@@ -42,6 +42,16 @@ public class UserEntity implements UserDetails {
     @Column(name = "role", length = 50, nullable = false)
     private String role;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "province_code")
+    private ProvinceEntity province;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ward_code")
+    private WardEntity ward;
+
+    @Column(name = "detail_address", length = 20)
+    private String detailAddress;
 //
 //    @OneToMany(
 //            mappedBy = "user",

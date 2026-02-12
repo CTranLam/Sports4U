@@ -18,38 +18,38 @@ function loadProfile() {
     }
 }
 
-function initProfileForm() {
-    const form = document.querySelector("form");
-    if (!form) return;
+// function initProfileForm() {
+//     const form = document.querySelector("form");
+//     if (!form) return;
 
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
+//     form.addEventListener("submit", (e) => {
+//         e.preventDefault();
 
-        const fullName = document.getElementById("fullName").value.trim();
-        const phone = document.getElementById("phone").value.trim();
-        const address = document.getElementById("address").value.trim();
-        const password = document.getElementById("password").value.trim();
+//         const fullName = document.getElementById("fullName").value.trim();
+//         const phone = document.getElementById("phone").value.trim();
+//         const address = document.getElementById("address").value.trim();
+//         const password = document.getElementById("password").value.trim();
 
-        const user = JSON.parse(localStorage.getItem("user")) || {};
+//         const user = JSON.parse(localStorage.getItem("user")) || {};
 
-        const updatedUser = {
-            ...user,
-            fullName,
-            phone,
-            address
-        };
-        if (password !== "") {
-            updatedUser.password = password;
-        }
+//         const updatedUser = {
+//             ...user,
+//             fullName,
+//             phone,
+//             address
+//         };
+//         if (password !== "") {
+//             updatedUser.password = password;
+//         }
 
-        localStorage.setItem("user", JSON.stringify(updatedUser));
+//         localStorage.setItem("user", JSON.stringify(updatedUser));
 
-        alert("Cập nhật thông tin thành công");
+//         alert("Cập nhật thông tin thành công");
 
-        // Không giữ password trên UI
-        document.getElementById("password").value = "";
-    });
-}
+//         // Không giữ password trên UI
+//         document.getElementById("password").value = "";
+//     });
+// }
 
 function initCancelButton() {
     const cancelBtn = document.getElementById("cancelProfileBtn");

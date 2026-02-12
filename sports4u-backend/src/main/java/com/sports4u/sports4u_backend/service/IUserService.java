@@ -1,5 +1,6 @@
 package com.sports4u.sports4u_backend.service;
 
+import com.sports4u.sports4u_backend.dto.UpdateProfileDTO;
 import com.sports4u.sports4u_backend.dto.UserRegisterDTO;
 import com.sports4u.sports4u_backend.dto.UserRegisterResponseDTO;
 import com.sports4u.sports4u_backend.dto.UserResponseDTO;
@@ -12,4 +13,5 @@ public interface IUserService {
     Long sendOtp(String email);
     boolean verifyOtp(String email, String otp);
     void setNewPassword(String email, String newPassword);
+    void updateUserInfo(String email, UpdateProfileDTO request);
 }

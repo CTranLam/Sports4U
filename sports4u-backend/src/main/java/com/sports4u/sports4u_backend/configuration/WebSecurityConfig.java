@@ -38,6 +38,9 @@ public class WebSecurityConfig {
                     requests
                             .requestMatchers("/api/user/register", "/api/user/login","/api/user/forgot-password",
                                     "/api/user/verify-otp","/api/user/reset-password").permitAll()
+                            .requestMatchers("/api/user/profile").hasRole("USER")
+                            .requestMatchers("GET","/api/user/provinces").hasRole("USER")
+                            .requestMatchers("GET","/api/user/wards").hasRole("USER")
                             .anyRequest().authenticated();
                 });
         return http.build();
