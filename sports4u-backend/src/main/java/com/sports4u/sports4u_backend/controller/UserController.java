@@ -134,4 +134,22 @@ public class UserController {
         userService.setNewPassword(email, newPassword);
         return ResponseEntity.ok(Map.of("message", "Mật khẩu đã được thay đổi"));
     }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOTP(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+
+        if (email == null || email.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Email không được để trống"));
+        }
+
+        try {
+            userService.sendOtp(email);
+            return ResponseEntity.ok(Map.of("message", "OTP sẽ được gửi đến email của bạn"));
+        }
+        catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Email không tồn tại"));
+        }
+    }
 }

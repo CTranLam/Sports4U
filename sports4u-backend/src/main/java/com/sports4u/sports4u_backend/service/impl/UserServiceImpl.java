@@ -13,6 +13,7 @@ import com.sports4u.sports4u_backend.repository.UserRepository;
 import com.sports4u.sports4u_backend.service.IUserService;
 import com.sports4u.sports4u_backend.service.RabbitMQService.EmailConsumerService;
 import com.sports4u.sports4u_backend.service.RabbitMQService.EmailProducerService;
+import com.sports4u.sports4u_backend.service.Redis.RateLimitLoginService;
 import com.sports4u.sports4u_backend.utils.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,7 +31,6 @@ import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class UserServiceImpl implements IUserService {
     private final PasswordEncoder passwordEncoder;
 
@@ -44,6 +44,9 @@ public class UserServiceImpl implements IUserService {
 
     private final EmailProducerService emailProducerService;
 
+    private final RateLimitLoginService rateLimitLoginService;
+
+    @Transactional
     @Override
     public UserRegisterResponseDTO createUser(UserRegisterDTO userRegisterDTO) {
         String username = userRegisterDTO.getUsername();
@@ -78,19 +81,26 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public String login(String userName, String password) throws Exception {
+
         UserEntity userEntity = userRepository.findByEmail(userName)
-                .orElseThrow(() -> new NotFoundException("Sai tài khỏan hoặc mật khẩu"));
-        if(!passwordEncoder.matches(password,userEntity.getPassword())){
-            throw new BadCredentialsException("Sai tài khỏan hoặc mật khẩu");
+                .orElseThrow(() -> new NotFoundException("Sai tài khoản hoặc mật khẩu"));
+
+        if (userEntity.getStatus() == 0L) {
+            throw new RuntimeException("Tài khoản đã bị khóa. Vui lòng xác thực OTP đặt lại mật khẩu.");
+        }
+        if (!passwordEncoder.matches(password, userEntity.getPassword())) {
+            rateLimitLoginService.loginFailed(userName);
+            throw new BadCredentialsException("Sai tài khoản hoặc mật khẩu");
         }
 
-        // load user ==> authentication token luu name, password real va authorities
+        //Login success → reset redis
+        rateLimitLoginService.loginSucceeded(userName);
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userName, password, userEntity.getAuthorities());
-        // tim bean authenticationManager de gan UsernamePasswordAuthenticationToken de xac thuc
         authenticationManager.authenticate(authenticationToken);
-        // login thanh cong => sinh token
-        return jwtTokenUtil.generateToken(userEntity); // token duoc sinh ra se duoc su dung de vao cac api, truoc khi vao cac api dung token vao websecurityConfig de xem quyen
+
+        return jwtTokenUtil.generateToken(userEntity);
     }
+
 
     @Transactional
     @Override
@@ -131,7 +141,7 @@ public class UserServiceImpl implements IUserService {
         return otpEntity.getId();
     }
 
-
+    @Transactional
     @Override
     public boolean verifyOtp(String email, String otp) {
         UserEntity user = userRepository.findByEmail(email)
@@ -160,7 +170,7 @@ public class UserServiceImpl implements IUserService {
         return true;
     }
 
-
+    @Transactional
     @Override
     public void setNewPassword(String email, String newPassword){
         UserEntity userEntity = userRepository.findByEmail(email)
