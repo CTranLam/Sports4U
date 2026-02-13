@@ -11,13 +11,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-
-import static org.springframework.http.HttpMethod.*;
-import static org.springframework.http.HttpMethod.DELETE;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpMethod.PUT;
 
 @Configuration
 @EnableWebSecurity
@@ -38,6 +31,8 @@ public class WebSecurityConfig {
                     requests
                             .requestMatchers("/api/user/register", "/api/user/login","/api/user/forgot-password",
                                     "/api/user/verify-otp","/api/user/reset-password").permitAll()
+                            .requestMatchers("GET","/api/categories/**").permitAll()
+                            .requestMatchers("/api/admin/**").hasRole("ADMIN")
                             .requestMatchers("/api/user/profile").hasRole("USER")
                             .requestMatchers("GET","/api/user/provinces").hasRole("USER")
                             .requestMatchers("GET","/api/user/wards").hasRole("USER")

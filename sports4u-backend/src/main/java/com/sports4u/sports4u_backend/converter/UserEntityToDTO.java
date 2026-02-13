@@ -11,13 +11,25 @@ public class UserEntityToDTO {
         UserResponseDTO  userResponseDTO = new UserResponseDTO();
         userResponseDTO.setUserId(userEntity.getUserId());
         userResponseDTO.setUserName(userEntity.getEmail());
-        userResponseDTO.setFullName(userEntity.getFullName());
-        userResponseDTO.setPhone(userEntity.getPhone());
+        if(userEntity.getFullName() != null) {
+            userResponseDTO.setFullName(userEntity.getFullName());
+        }
+        if(userEntity.getPhone() != null) {
+            userResponseDTO.setPhone(userEntity.getPhone());
+        }
         userResponseDTO.setRole(userEntity.getRole());
         userResponseDTO.setStatus(1L);
-        userResponseDTO.setDetailAddress(userEntity.getDetailAddress());
-        userResponseDTO.setPrivinceName(userEntity.getProvince().getName());
-        userResponseDTO.setWardName(userEntity.getWard().getName());
+        if(userEntity.getDetailAddress() != null) {
+            userResponseDTO.setDetailAddress(userEntity.getDetailAddress());
+        }
+
+        if (userEntity.getProvince() != null) {
+            userResponseDTO.setPrivinceName(userEntity.getProvince().getName());
+        }
+
+        if (userEntity.getWard() != null) {
+            userResponseDTO.setWardName(userEntity.getWard().getName());
+        }
         return userResponseDTO;
     }
 }
