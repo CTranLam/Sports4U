@@ -1,6 +1,6 @@
 package com.sports4u.sports4u_backend.converter;
 
-import com.sports4u.sports4u_backend.dto.UserResponseDTO;
+import com.sports4u.sports4u_backend.dto.userdto.UserResponseDTO;
 import com.sports4u.sports4u_backend.entity.UserEntity;
 import org.springframework.stereotype.Component;
 

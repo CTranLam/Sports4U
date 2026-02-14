@@ -1,10 +1,9 @@
 package com.sports4u.sports4u_backend.service;
 
-import com.sports4u.sports4u_backend.dto.UpdateProfileDTO;
-import com.sports4u.sports4u_backend.dto.UserRegisterDTO;
-import com.sports4u.sports4u_backend.dto.UserRegisterResponseDTO;
-import com.sports4u.sports4u_backend.dto.UserResponseDTO;
-import com.sports4u.sports4u_backend.entity.UserEntity;
+import com.sports4u.sports4u_backend.dto.userdto.UpdateProfileDTO;
+import com.sports4u.sports4u_backend.dto.userdto.UserRegisterDTO;
+import com.sports4u.sports4u_backend.dto.userdto.UserRegisterResponseDTO;
+import com.sports4u.sports4u_backend.dto.userdto.UserResponseDTO;
 
 public interface IUserService {
     UserRegisterResponseDTO createUser(UserRegisterDTO userRegisterDTO) throws Exception;

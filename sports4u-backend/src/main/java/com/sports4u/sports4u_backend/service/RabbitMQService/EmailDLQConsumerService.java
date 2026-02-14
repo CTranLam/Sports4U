@@ -1,7 +1,7 @@
 package com.sports4u.sports4u_backend.service.RabbitMQService;
 
 import com.sports4u.sports4u_backend.configuration.RabbitMQConfig;
-import com.sports4u.sports4u_backend.dto.EmailMessageDTO;
+import com.sports4u.sports4u_backend.dto.userdto.EmailMessageDTO;
 import com.sports4u.sports4u_backend.enums.OtpStatus;
 import com.sports4u.sports4u_backend.repository.PasswordResetOtpRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
 package com.sports4u.sports4u_backend.service.RabbitMQService;
 
 import com.sports4u.sports4u_backend.configuration.RabbitMQConfig;
-import com.sports4u.sports4u_backend.dto.EmailMessageDTO;
+import com.sports4u.sports4u_backend.dto.userdto.EmailMessageDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.scheduling.annotation.Async;

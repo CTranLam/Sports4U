@@ -1,13 +1,10 @@
 package com.sports4u.sports4u_backend.controller;
 
-import com.sports4u.sports4u_backend.dto.*;
-import com.sports4u.sports4u_backend.entity.UserEntity;
+import com.sports4u.sports4u_backend.dto.userdto.*;
 import com.sports4u.sports4u_backend.service.IAddressService;
 import com.sports4u.sports4u_backend.service.IUserService;
-import com.sports4u.sports4u_backend.service.impl.AddressServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;

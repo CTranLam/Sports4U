@@ -1,7 +1,7 @@
 package com.sports4u.sports4u_backend.service.impl;
 
 import com.sports4u.sports4u_backend.converter.UserEntityToDTO;
-import com.sports4u.sports4u_backend.dto.*;
+import com.sports4u.sports4u_backend.dto.userdto.*;
 import com.sports4u.sports4u_backend.entity.PasswordResetOTPEntity;
 import com.sports4u.sports4u_backend.entity.ProvinceEntity;
 import com.sports4u.sports4u_backend.entity.UserEntity;
@@ -13,7 +13,6 @@ import com.sports4u.sports4u_backend.repository.ProvinceRepository;
 import com.sports4u.sports4u_backend.repository.UserRepository;
 import com.sports4u.sports4u_backend.repository.WardRepository;
 import com.sports4u.sports4u_backend.service.IUserService;
-import com.sports4u.sports4u_backend.service.RabbitMQService.EmailConsumerService;
 import com.sports4u.sports4u_backend.service.RabbitMQService.EmailProducerService;
 import com.sports4u.sports4u_backend.service.Redis.RateLimitLoginService;
 import com.sports4u.sports4u_backend.utils.JwtTokenUtil;

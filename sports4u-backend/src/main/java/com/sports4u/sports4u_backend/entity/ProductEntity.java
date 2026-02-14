@@ -44,6 +44,6 @@ public class ProductEntity {
     @Column(name="image_url", length = 500)
     private String imageUrl;
 
-    @Column(name="status", length = 50)
-    private String status;
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
 }

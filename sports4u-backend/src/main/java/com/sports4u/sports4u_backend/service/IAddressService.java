@@ -1,7 +1,7 @@
 package com.sports4u.sports4u_backend.service;
 
-import com.sports4u.sports4u_backend.dto.ProvinceResponseDTO;
-import com.sports4u.sports4u_backend.dto.WardResponseDTO;
+import com.sports4u.sports4u_backend.dto.addressdto.ProvinceResponseDTO;
+import com.sports4u.sports4u_backend.dto.addressdto.WardResponseDTO;
 
 import java.util.List;
 

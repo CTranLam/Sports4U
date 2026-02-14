@@ -1,4 +1,4 @@
-package com.sports4u.sports4u_backend.dto;
+package com.sports4u.sports4u_backend.dto.userdto;
 
 import lombok.*;
 

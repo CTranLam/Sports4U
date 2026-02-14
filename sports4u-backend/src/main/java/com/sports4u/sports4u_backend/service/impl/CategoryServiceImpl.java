@@ -1,14 +1,18 @@
 package com.sports4u.sports4u_backend.service.impl;
 
-import com.sports4u.sports4u_backend.dto.CategoryDTO;
-import com.sports4u.sports4u_backend.dto.CategoryRequestDTO;
+import com.sports4u.sports4u_backend.dto.categorydto.CategoryDTO;
+import com.sports4u.sports4u_backend.dto.categorydto.CategoryRequestDTO;
 import com.sports4u.sports4u_backend.entity.CategoryEntity;
 import com.sports4u.sports4u_backend.exception.NotFoundException;
 import com.sports4u.sports4u_backend.repository.CategoryRepository;
 import com.sports4u.sports4u_backend.repository.ProductRepository;
 import com.sports4u.sports4u_backend.service.ICategoryService;
+import com.sports4u.sports4u_backend.utils.PageResponse;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +28,34 @@ public class CategoryServiceImpl implements ICategoryService {
 
     private final ProductRepository productRepository;
 
-    @Override
-    public List<CategoryDTO> getAllCategories() {
-        return categoryRepository.findAllByIsDeletedFalse()
+    public PageResponse<CategoryDTO> getCategories(int page, int size) {
+
+        Pageable pageable = PageRequest.of(page-1, size, Sort.by("categoryId").descending());
+
+        Page<CategoryEntity> categoryPage =
+                categoryRepository.findAllByIsDeletedFalse(pageable);
+
+        List<CategoryDTO> content = categoryPage.getContent()
+                .stream()
+                .map(category -> CategoryDTO.builder()
+                        .categoryId(category.getCategoryId())
+                        .categoryName(category.getCategoryName())
+                        .build())
+                .toList();
+
+        return PageResponse.<CategoryDTO>builder()
+                .content(content)
+                .pageNumber(categoryPage.getNumber() + 1)
+                .pageSize(categoryPage.getSize())
+                .totalElements(categoryPage.getTotalElements())
+                .totalPages(categoryPage.getTotalPages())
+                .last(categoryPage.isLast())
+                .build();
+
+    }
+
+    public List<CategoryDTO> getCategories() {
+        return categoryRepository.findAllByIsDeletedFalse(Sort.by("categoryId"))
                 .stream()
                 .map(category -> CategoryDTO.builder()
                         .categoryId(category.getCategoryId())
@@ -34,6 +63,7 @@ public class CategoryServiceImpl implements ICategoryService {
                         .build())
                 .toList();
     }
+
 
     @Override
     public CategoryDTO insertCategory(CategoryRequestDTO categoryRequestDTO) {

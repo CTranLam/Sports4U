@@ -1,4 +1,4 @@
-package com.sports4u.sports4u_backend.dto;
+package com.sports4u.sports4u_backend.dto.userdto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
@@ -9,12 +9,18 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserLoginDTO {
+public class UserRegisterDTO {
+
     @JsonProperty("email")
-    @NotBlank(message = "Username is required")
-    private String userName;
+    @NotBlank(message = "Email is required")
+    private String username;
 
     @JsonProperty("password")
     @NotBlank(message = "Password is required")
     private String password;
+
+    @JsonProperty("retypePassword")
+    @NotBlank(message = "Retype Password is required")
+    private String retypedPassword;
+
 }
