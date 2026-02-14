@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface IAddressService {
     List<ProvinceResponseDTO> getAllProvinces();
-    List<WardResponseDTO> getWardsByProvince(String provinceCode);
+    List<WardResponseDTO> getWardsByProvince(String provinceCode) throws IllegalArgumentException;
 }

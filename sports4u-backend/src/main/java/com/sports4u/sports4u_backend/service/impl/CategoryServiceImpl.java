@@ -57,12 +57,21 @@ public class CategoryServiceImpl implements ICategoryService {
     public List<CategoryDTO> getCategories() {
         return categoryRepository.findAllByIsDeletedFalse(Sort.by("categoryId"))
                 .stream()
-                .map(category -> CategoryDTO.builder()
-                        .categoryId(category.getCategoryId())
-                        .categoryName(category.getCategoryName())
-                        .build())
+                .map(category -> {
+                    long productCount = productRepository
+                            .countByCategoryEntity_CategoryIdAndIsDeletedFalse(
+                                    category.getCategoryId()
+                            );
+
+                    return CategoryDTO.builder()
+                            .categoryId(category.getCategoryId())
+                            .categoryName(category.getCategoryName())
+                            .productCount(productCount)
+                            .build();
+                })
                 .toList();
     }
+
 
 
     @Override
@@ -84,6 +93,9 @@ public class CategoryServiceImpl implements ICategoryService {
 
     @Override
     public void deleteCategory(Long categoryId) {
+        if (categoryId == null || categoryId <= 0) {
+            throw new IllegalArgumentException("Danh mục không hợp lệ");
+        }
         CategoryEntity category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy danh mục sản phẩm đã chọn"));
 

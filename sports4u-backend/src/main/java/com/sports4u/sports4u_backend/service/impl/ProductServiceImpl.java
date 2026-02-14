@@ -1,9 +1,14 @@
 package com.sports4u.sports4u_backend.service.impl;
 
+import com.sports4u.sports4u_backend.converter.ProductEntityToDTO;
 import com.sports4u.sports4u_backend.dto.productdto.ProductAdminDTO;
 import com.sports4u.sports4u_backend.dto.productdto.ProductDTO;
+import com.sports4u.sports4u_backend.dto.productdto.ProductRequestDTO;
+import com.sports4u.sports4u_backend.entity.CategoryEntity;
 import com.sports4u.sports4u_backend.entity.ProductEntity;
+import com.sports4u.sports4u_backend.repository.CategoryRepository;
 import com.sports4u.sports4u_backend.repository.ProductRepository;
+import com.sports4u.sports4u_backend.service.ICloudinaryService;
 import com.sports4u.sports4u_backend.service.IProductService;
 import com.sports4u.sports4u_backend.utils.PageResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -23,7 +28,11 @@ import java.util.List;
 public class ProductServiceImpl implements IProductService {
 
     private final ProductRepository productRepository;
-    private final RestClient.Builder builder;
+
+    private final CategoryRepository categoryRepository;
+
+    private final ICloudinaryService cloudinaryService;
+
 
     @Override
     public PageResponse<ProductDTO> getProductsByCategory(Long categoryId, int page, int size) {
@@ -40,13 +49,9 @@ public class ProductServiceImpl implements IProductService {
 
         List<ProductDTO> products = productPage.getContent()
                 .stream()
-                .map(product -> ProductDTO.builder()
-                        .productId(product.getProductId())
-                        .productName(product.getProductName())
-                        .price(product.getPrice())
-                        .imageUrl(product.getImageUrl())
-                        .build())
+                .map(ProductEntityToDTO::convertToProductDTO)
                 .toList();
+
 
         return PageResponse.<ProductDTO>builder()
                 .content(products)
@@ -73,18 +78,7 @@ public class ProductServiceImpl implements IProductService {
 
         List<ProductAdminDTO> products = productPage.getContent()
                 .stream()
-                .map(product -> ProductAdminDTO.builder()
-                        .productId(product.getProductId())
-                        .productName(product.getProductName())
-                        .price(product.getPrice())
-                        .imageUrl(product.getImageUrl())
-                        .categoryId(product.getCategoryEntity().getCategoryId())
-                        .categoryName(product.getCategoryEntity().getCategoryName())
-                        .origin(product.getOrigin())
-                        .advantages(product.getAdvantages())
-                        .inStock(product.getStockQuantity() > 0)
-                        .quantity(product.getStockQuantity())
-                        .build())
+                .map(ProductEntityToDTO::convertProductAdminDTO)
                 .toList();
 
         return PageResponse.<ProductAdminDTO>builder()
@@ -97,4 +91,98 @@ public class ProductServiceImpl implements IProductService {
                 .build();
 
     }
+
+    @Override
+    public ProductAdminDTO createProduct(ProductRequestDTO data, MultipartFile imageFile) {
+        boolean exists = productRepository
+                .existsByProductNameIgnoreCaseAndCategoryEntity_CategoryIdAndIsDeletedFalse(
+                        data.getProductName(), data.getCategoryId()
+                );
+
+        if (exists) {
+            throw new IllegalArgumentException("Sản phẩm đã tồn tại trong danh mục");
+        }
+        if (data == null) {
+            throw new IllegalArgumentException("Dữ liệu sản phẩm không được để trống");
+        }
+        if (data.getProductName() == null || data.getProductName().isBlank()) {
+            throw new IllegalArgumentException("Tên sản phẩm không được để trống");
+        }
+        if (data.getPrice() == null || data.getPrice().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Giá sản phẩm phải lớn hơn 0");
+        }
+        if (data.getCategoryId() == null || data.getCategoryId() <= 0) {
+            throw new IllegalArgumentException("Danh mục không hợp lệ");
+        }
+        if (data.getStockQuantity() == null || data.getStockQuantity() < 0) {
+            throw new IllegalArgumentException("Số lượng tồn kho không được âm");
+        }
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new IllegalArgumentException("Ảnh sản phẩm không được để trống");
+        }
+
+        CategoryEntity category = categoryRepository.findById(data.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("Danh mục không tồn tại"));
+
+        String imageUrl = cloudinaryService.upload(imageFile);
+
+        ProductEntity product = ProductEntity.builder()
+                .productName(data.getProductName())
+                .price(data.getPrice())
+                .categoryEntity(category)
+                .origin(data.getOrigin())
+                .advantages(data.getAdvantages())
+                .stockQuantity(data.getStockQuantity())
+                .imageUrl(imageUrl)
+                .isDeleted(false)
+                .build();
+
+        productRepository.save(product);
+
+        return ProductEntityToDTO.convertProductAdminDTO(product);
+    }
+
+    @Override
+    public ProductAdminDTO updateProduct(Long id, ProductRequestDTO data, MultipartFile imageFile) {
+
+        ProductEntity product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Sản phẩm không tồn tại"));
+
+        CategoryEntity category = categoryRepository.findById(data.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("Danh mục không tồn tại"));
+
+        product.setProductName(data.getProductName());
+        product.setPrice(data.getPrice());
+        product.setCategoryEntity(category);
+        product.setOrigin(data.getOrigin());
+        product.setAdvantages(data.getAdvantages());
+        product.setStockQuantity(data.getStockQuantity());
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String imageUrl = cloudinaryService.upload(imageFile);
+            product.setImageUrl(imageUrl);
+        }
+        productRepository.save(product);
+        return ProductEntityToDTO.convertProductAdminDTO(product);
+    }
+
+
+    @Override
+    public void deleteProduct(Long productId) throws IllegalArgumentException {
+        ProductEntity productEntity = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Sản phẩm không tồn tại"));
+
+        productEntity.setIsDeleted(true);
+        productRepository.save(productEntity);
+    }
+
+    @Override
+    public ProductDTO getProductById(Long id) throws IllegalArgumentException {
+        ProductEntity product = productRepository.findByProductIdAndIsDeletedFalse(id);
+        if (product == null) {
+            throw new IllegalArgumentException("Sản phẩm không tồn tại");
+        }
+        return ProductEntityToDTO.convertToProductDTO(product);
+    }
+
 }

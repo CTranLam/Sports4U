@@ -12,4 +12,11 @@ import org.springframework.stereotype.Repository;
 public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
     Boolean existsByCategoryEntity_CategoryId(Long categoryId);
     Page<ProductEntity> findByCategoryEntity_CategoryIdAndIsDeletedFalse(Long categoryId, Pageable pageable);
+    Long countByCategoryEntity_CategoryIdAndIsDeletedFalse(Long categoryId);
+    Boolean existsByProductNameIgnoreCaseAndCategoryEntity_CategoryIdAndIsDeletedFalse(
+            String productName,
+            Long categoryId
+    );
+    ProductEntity findByProductIdAndIsDeletedFalse(Long id);
+
 }

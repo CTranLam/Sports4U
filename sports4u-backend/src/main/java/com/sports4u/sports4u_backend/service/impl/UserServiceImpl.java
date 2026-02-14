@@ -186,17 +186,36 @@ public class UserServiceImpl implements IUserService {
     @Transactional
     @Override
     public void updateUserInfo(String email, UpdateProfileDTO request) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email không được để trống");
+        }
+        if (request == null) {
+            throw new IllegalArgumentException("Dữ liệu cập nhật không được để trống");
+        }
+        if (request.getFullName() == null || request.getFullName().isBlank()) {
+            throw new IllegalArgumentException("Họ tên không được để trống");
+        }
+        if (request.getPhone() == null || request.getPhone().isBlank()) {
+            throw new IllegalArgumentException("Số điện thoại không được để trống");
+        }
+        if (request.getProvinceId() == null) {
+            throw new IllegalArgumentException("Tỉnh/thành phố không được để trống");
+        }
+        if (request.getWardId() == null) {
+            throw new IllegalArgumentException("Phường/xã không được để trống");
+        }
+
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với email đã cung cấp"));
 
         ProvinceEntity province = provinceRepository.findById(request.getProvinceId())
-                .orElseThrow(() -> new IllegalArgumentException("Province not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tỉnh/thành phố"));
 
         WardEntity ward = wardRepository.findById(request.getWardId())
-                .orElseThrow(() -> new IllegalArgumentException("Ward not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phường/xã"));
 
         if (!ward.getProvince().getCode().equals(province.getCode())) {
-            throw new IllegalArgumentException("Ward does not belong to selected province");
+            throw new IllegalArgumentException("Phường/xã không thuộc tỉnh/thành phố đã chọn");
         }
 
         user.setFullName(request.getFullName());

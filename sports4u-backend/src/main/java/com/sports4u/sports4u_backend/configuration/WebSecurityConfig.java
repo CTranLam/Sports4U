@@ -32,6 +32,7 @@ public class WebSecurityConfig {
                             .requestMatchers("/api/user/register", "/api/user/login","/api/user/forgot-password",
                                     "/api/user/verify-otp","/api/user/reset-password").permitAll()
                             .requestMatchers("GET","/api/categories/**").permitAll()
+                            .requestMatchers("GET","/api/products/**").permitAll()
                             .requestMatchers("/api/admin/**").hasRole("ADMIN")
                             .requestMatchers("/api/user/profile").hasRole("USER")
                             .requestMatchers("GET","/api/user/provinces").hasRole("USER")

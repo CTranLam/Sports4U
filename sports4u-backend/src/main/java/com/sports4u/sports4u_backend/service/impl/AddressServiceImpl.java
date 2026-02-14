@@ -30,6 +30,9 @@ public class AddressServiceImpl implements IAddressService {
     }
 
     public List<WardResponseDTO> getWardsByProvince(String provinceCode) {
+        if (provinceCode == null || provinceCode.isBlank()) {
+            throw new IllegalArgumentException("Mã tỉnh/thành phố không được để trống");
+        }
         return wardRepository
                 .findByProvince_CodeOrderByNameAsc(provinceCode)
                 .stream()
