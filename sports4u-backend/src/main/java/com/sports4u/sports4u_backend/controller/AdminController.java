@@ -4,8 +4,13 @@ import com.sports4u.sports4u_backend.dto.categorydto.CategoryDTO;
 import com.sports4u.sports4u_backend.dto.categorydto.CategoryRequestDTO;
 import com.sports4u.sports4u_backend.dto.productdto.ProductAdminDTO;
 import com.sports4u.sports4u_backend.dto.productdto.ProductRequestDTO;
+import com.sports4u.sports4u_backend.dto.userdto.UserInAdminDTO;
+import com.sports4u.sports4u_backend.dto.userdto.UserResponseDTO;
+import com.sports4u.sports4u_backend.dto.userdto.UserUpdateDTO;
+import com.sports4u.sports4u_backend.enums.Role;
 import com.sports4u.sports4u_backend.service.ICategoryService;
 import com.sports4u.sports4u_backend.service.IProductService;
+import com.sports4u.sports4u_backend.service.IUserService;
 import com.sports4u.sports4u_backend.utils.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,10 +26,68 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
+    private final IUserService userService;
 
     private final ICategoryService categoryService;
 
     private final IProductService productService;
+
+    @PostMapping("/account")
+    public ResponseEntity<?> createAccount(@RequestBody @Valid UserInAdminDTO requestAdminDTO) {
+        if(!requestAdminDTO.getPassword().equals(requestAdminDTO.getRetypePassword())) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Mật khẩu nhập lại không khớp"
+            ));
+        }
+        UserResponseDTO userResponseDTO = userService.createAccount(requestAdminDTO);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", userResponseDTO,
+                "message", "Tạo tài khoản thành công"
+        ));
+    }
+
+    @PutMapping("/account/{id}")
+    public ResponseEntity<?> updateAccount(@PathVariable Long id, @RequestBody @Valid UserUpdateDTO requestUserDTO) {
+        userService.updateAccount(id, requestUserDTO);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Cập nhật tài khoản thành công"
+        ));
+    }
+
+    @DeleteMapping("/account/{id}")
+    public ResponseEntity<?> lockAccount(@PathVariable Long id) {
+        userService.lockAccount(id);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Đã khóa tài khoản thành công"
+        ));
+    }
+
+    @GetMapping("/accounts")
+    public ResponseEntity<?> getAccounts(
+            @RequestParam(required = false) Long status,
+            @RequestParam(required = false) String role,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Role roleEnum = null;
+        if (role != null && !role.isBlank()) {
+            try {
+                roleEnum = Role.valueOf(role);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Role không hợp lệ. Chỉ chấp nhận: ROLE_USER, ROLE_ADMIN, ROLE_GUEST"
+                ));
+            }
+        }
+
+        PageResponse<UserResponseDTO> accounts = userService.getAccounts(status, roleEnum, page, size);
+        return ResponseEntity.ok(accounts);
+    }
 
     @PostMapping("/categories")
     public ResponseEntity<?> insertCategories(@RequestBody @Valid CategoryRequestDTO categoryRequestDTO) {

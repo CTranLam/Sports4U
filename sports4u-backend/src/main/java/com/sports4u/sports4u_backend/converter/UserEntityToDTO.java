@@ -17,7 +17,7 @@ public class UserEntityToDTO {
         if(userEntity.getPhone() != null) {
             userResponseDTO.setPhone(userEntity.getPhone());
         }
-        userResponseDTO.setRole(userEntity.getRole());
+        userResponseDTO.setRole(userEntity.getRole().name());
         userResponseDTO.setStatus(1L);
         if(userEntity.getDetailAddress() != null) {
             userResponseDTO.setDetailAddress(userEntity.getDetailAddress());

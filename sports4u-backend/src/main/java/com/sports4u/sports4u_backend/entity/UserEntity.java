@@ -1,6 +1,7 @@
 package com.sports4u.sports4u_backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.sports4u.sports4u_backend.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -39,8 +40,9 @@ public class UserEntity implements UserDetails {
     @Column(name = "phone", length = 20)
     private String phone;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "role", length = 50, nullable = false)
-    private String role;
+    private Role role;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "province_code")
@@ -73,7 +75,7 @@ public class UserEntity implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role));
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override

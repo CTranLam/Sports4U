@@ -7,6 +7,7 @@ import com.sports4u.sports4u_backend.entity.ProvinceEntity;
 import com.sports4u.sports4u_backend.entity.UserEntity;
 import com.sports4u.sports4u_backend.entity.WardEntity;
 import com.sports4u.sports4u_backend.enums.OtpStatus;
+import com.sports4u.sports4u_backend.enums.Role;
 import com.sports4u.sports4u_backend.exception.NotFoundException;
 import com.sports4u.sports4u_backend.repository.PasswordResetOtpRepository;
 import com.sports4u.sports4u_backend.repository.ProvinceRepository;
@@ -16,7 +17,12 @@ import com.sports4u.sports4u_backend.service.IUserService;
 import com.sports4u.sports4u_backend.service.RabbitMQService.EmailProducerService;
 import com.sports4u.sports4u_backend.service.Redis.RateLimitLoginService;
 import com.sports4u.sports4u_backend.utils.JwtTokenUtil;
+import com.sports4u.sports4u_backend.utils.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +33,7 @@ import org.springframework.transaction.support.TransactionSynchronizationAdapter
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
@@ -62,14 +69,14 @@ public class UserServiceImpl implements IUserService {
         UserEntity userEntity = new UserEntity();
         userEntity.setEmail(username);
         userEntity.setPassword(passwordEncoder.encode(password));
-        userEntity.setRole("ROLE_USER");
+        userEntity.setRole(Role.ROLE_USER);
         userEntity.setStatus(1L);
 
         userRepository.save(userEntity);
 
         UserRegisterResponseDTO userRegisterResponseDTO = new UserRegisterResponseDTO();
         userRegisterResponseDTO.setUsername(username);
-        userRegisterResponseDTO.setRole("ROLE_USER");
+        userRegisterResponseDTO.setRole(Role.ROLE_USER.name());
         return userRegisterResponseDTO;
     }
 
@@ -231,6 +238,83 @@ public class UserServiceImpl implements IUserService {
         userRepository.save(user);
     }
 
+    @Override
+    @Transactional
+    public UserResponseDTO createAccount(UserInAdminDTO requestAdminDTO) throws IllegalArgumentException {
+        if (requestAdminDTO == null) {
+            throw new IllegalArgumentException("Dữ liệu người dùng không được để trống");
+        }
+        if (requestAdminDTO.getEmail() == null || requestAdminDTO.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Email không được để trống");
+        }
+        if (requestAdminDTO.getPassword() == null || requestAdminDTO.getPassword().isBlank()) {
+            throw new IllegalArgumentException("Mật khẩu không được để trống");
+        }
+        if (requestAdminDTO.getRole() == null) {
+            throw new IllegalArgumentException("Vai trò không được để trống");
+        }
 
+        if (userRepository.existsByEmail(requestAdminDTO.getEmail())) {
+            throw new IllegalArgumentException("Email đã tồn tại trong hệ thống");
+        }
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setEmail(requestAdminDTO.getEmail());
+        userEntity.setPassword(passwordEncoder.encode(requestAdminDTO.getPassword()));
+        userEntity.setRole(requestAdminDTO.getRole());
+        userEntity.setStatus(requestAdminDTO.getStatus());
+
+        UserEntity savedUser = userRepository.save(userEntity);
+
+        return userEntityToDTO.convertToDTO(savedUser);
+    }
+
+    @Override
+    @Transactional
+    public void updateAccount(Long userId, UserUpdateDTO userUpdateDTO) throws IllegalArgumentException {
+        UserEntity userEntity = userRepository.findByUserIdAndStatus(userId, 1L)
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại hoặc đã bị khóa"));
+
+        userEntity.setRole(userUpdateDTO.getRole());
+        userEntity.setPassword(passwordEncoder.encode(userUpdateDTO.getNewPassword()));
+
+        userRepository.save(userEntity);
+    }
+
+    @Override
+    @Transactional
+    public void lockAccount(Long userId) throws IllegalArgumentException {
+        UserEntity userEntity = userRepository.findByUserIdAndStatus(userId, 1L)
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại hoặc đã bị khóa"));
+
+        userEntity.setStatus(0L);
+        userRepository.save(userEntity);
+    }
+
+    @Override
+    public PageResponse<UserResponseDTO> getAccounts(Long status, Role role, int page, int size) throws NoSuchElementException {
+        Pageable pageable = PageRequest.of(
+                page - 1,
+                size,
+                Sort.by("userId").descending()
+        );
+        Page<UserEntity> userEntities = userRepository.findByStatusAndRole(status, role, pageable);
+        if(userEntities.isEmpty()) {
+            throw new NoSuchElementException("Không tìm thấy tài khoản nào với trạng thái và vai trò đã chọn");
+        }
+
+        List<UserResponseDTO> userResponseDTOS = userEntities.stream()
+                .map(userEntityToDTO::convertToDTO)
+                .toList();
+
+        return PageResponse.<UserResponseDTO>builder()
+                .content(userResponseDTOS)
+                .pageNumber(userEntities.getNumber() + 1)
+                .pageSize(userEntities.getSize())
+                .totalElements(userEntities.getTotalElements())
+                .totalPages(userEntities.getTotalPages())
+                .last(userEntities.isLast())
+                .build();
+    }
 
 }
