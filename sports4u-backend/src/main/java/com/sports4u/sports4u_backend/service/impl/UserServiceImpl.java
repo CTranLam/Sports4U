@@ -1,18 +1,15 @@
 package com.sports4u.sports4u_backend.service.impl;
 
+import com.sports4u.sports4u_backend.converter.ConvertCartItem;
 import com.sports4u.sports4u_backend.converter.UserEntityToDTO;
+import com.sports4u.sports4u_backend.dto.cartdto.CartItemDTO;
+import com.sports4u.sports4u_backend.dto.cartdto.CartItemResponseDTO;
 import com.sports4u.sports4u_backend.dto.userdto.*;
-import com.sports4u.sports4u_backend.entity.PasswordResetOTPEntity;
-import com.sports4u.sports4u_backend.entity.ProvinceEntity;
-import com.sports4u.sports4u_backend.entity.UserEntity;
-import com.sports4u.sports4u_backend.entity.WardEntity;
+import com.sports4u.sports4u_backend.entity.*;
 import com.sports4u.sports4u_backend.enums.OtpStatus;
 import com.sports4u.sports4u_backend.enums.Role;
 import com.sports4u.sports4u_backend.exception.NotFoundException;
-import com.sports4u.sports4u_backend.repository.PasswordResetOtpRepository;
-import com.sports4u.sports4u_backend.repository.ProvinceRepository;
-import com.sports4u.sports4u_backend.repository.UserRepository;
-import com.sports4u.sports4u_backend.repository.WardRepository;
+import com.sports4u.sports4u_backend.repository.*;
 import com.sports4u.sports4u_backend.service.IUserService;
 import com.sports4u.sports4u_backend.service.RabbitMQService.EmailProducerService;
 import com.sports4u.sports4u_backend.service.Redis.RateLimitLoginService;
@@ -57,6 +54,10 @@ public class UserServiceImpl implements IUserService {
     private final ProvinceRepository provinceRepository;
 
     private final WardRepository wardRepository;
+
+    private final CartItemRepository cartItemRepository;
+
+    private final ProductRepository productRepository;
 
     private final UserEntityToDTO userEntityToDTO;
 
@@ -316,5 +317,80 @@ public class UserServiceImpl implements IUserService {
                 .last(userEntities.isLast())
                 .build();
     }
+
+    @Transactional
+    @Override
+    public void addItemToCart(String email, CartItemDTO cartItemDTO) throws NoSuchElementException {
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("Tài khoản không tồn tại"));
+
+        ProductEntity productEntity = productRepository.findById(cartItemDTO.getProductId())
+                .orElseThrow(() -> new NoSuchElementException("Sản phẩm không tồn tại"));
+
+        CartItemEntity cartItemEntity = ConvertCartItem.convertToCartItemEntity(cartItemDTO, userEntity, productEntity);
+        cartItemRepository.save(cartItemEntity);
+    }
+
+    @Transactional
+    @Override
+    public void removeItemFromCart(String email, Long productId) throws NoSuchElementException {
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("Tài khoản không tồn tại"));
+
+        CartItemEntity cartItemEntity = cartItemRepository.findByUser_UserIdAndProduct_ProductId(userEntity.getUserId(), productId);
+        if (cartItemEntity == null) {
+            throw new NoSuchElementException("Sản phẩm không tồn tại trong giỏ hàng");
+        }
+        cartItemRepository.delete(cartItemEntity);
+    }
+
+    @Override
+    public List<CartItemResponseDTO> getCartItems(String email) throws NoSuchElementException {
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("Tài khoản không tồn tại"));
+
+        List<CartItemEntity> cartItemEntities = cartItemRepository.findByUser_UserId(userEntity.getUserId());
+
+        return cartItemEntities.stream()
+                .map(cartItemEntity -> {
+                    CartItemResponseDTO cartItemResponseDTO = new CartItemResponseDTO();
+                    cartItemResponseDTO.setProductId(cartItemEntity.getProduct().getProductId());
+                    cartItemResponseDTO.setQuantity(cartItemEntity.getQuantity());
+                    cartItemResponseDTO.setPrice(cartItemEntity.getPriceAtAdded());
+                    return cartItemResponseDTO;
+                })
+                .toList();
+    }
+
+    @Transactional
+    @Override
+    public void updateItemCart(String email, CartItemDTO cartItemDTO, Long itemId) throws NoSuchElementException {
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("Tài khoản không tồn tại"));
+
+        CartItemEntity cartItemEntity = cartItemRepository.findById(itemId)
+                .orElseThrow(() -> new NoSuchElementException("Sản phẩm không tồn tại trong giỏ hàng"));
+
+        if (!cartItemEntity.getUser().getUserId().equals(userEntity.getUserId())) {
+            throw new NoSuchElementException("Sản phẩm không có trong giỏ hàng của người dùng");
+        }
+
+        ProductEntity productEntity = productRepository.findById(cartItemDTO.getProductId())
+                .orElseThrow(() -> new NoSuchElementException("Sản phẩm không tồn tại"));
+
+        cartItemEntity.setProduct(productEntity);
+        cartItemEntity.setQuantity(cartItemDTO.getQuantity());
+        cartItemEntity.setPriceAtAdded(productEntity.getPrice());
+        cartItemRepository.save(cartItemEntity);
+    }
+
+    @Override
+    public Long getCartItemCount(String email) throws NoSuchElementException {
+        UserEntity userEntity = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("Tài khoản không tồn tại"));
+
+        return cartItemRepository.sumQuantityByUserId(userEntity.getUserId());
+    }
+
 
 }

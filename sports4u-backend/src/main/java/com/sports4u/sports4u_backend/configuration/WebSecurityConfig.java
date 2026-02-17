@@ -34,9 +34,7 @@ public class WebSecurityConfig {
                             .requestMatchers("GET","/api/categories/**").permitAll()
                             .requestMatchers("GET","/api/products/**").permitAll()
                             .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                            .requestMatchers("/api/user/profile").hasRole("USER")
-                            .requestMatchers("GET","/api/user/provinces").hasRole("USER")
-                            .requestMatchers("GET","/api/user/wards").hasRole("USER")
+                            .requestMatchers("/api/user/**").hasRole("USER")
                             .anyRequest().authenticated();
                 });
         return http.build();

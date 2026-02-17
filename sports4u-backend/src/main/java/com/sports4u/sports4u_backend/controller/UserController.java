@@ -1,5 +1,7 @@
 package com.sports4u.sports4u_backend.controller;
 
+import com.sports4u.sports4u_backend.dto.cartdto.CartItemDTO;
+import com.sports4u.sports4u_backend.dto.cartdto.CartItemResponseDTO;
 import com.sports4u.sports4u_backend.dto.userdto.*;
 import com.sports4u.sports4u_backend.service.IAddressService;
 import com.sports4u.sports4u_backend.service.IUserService;
@@ -183,5 +185,63 @@ public class UserController {
         return ResponseEntity.ok(
                 addressService.getWardsByProvince(provinceCode)
         );
+    }
+
+    @PostMapping("/cart/items")
+    public ResponseEntity<?> addItemToCart(@RequestBody CartItemDTO cartItemDTO,
+                                           Principal principal) {
+        try {
+            userService.addItemToCart(principal.getName(), cartItemDTO);
+            return ResponseEntity.ok(Map.of("message", "Thêm sản phẩm vào giỏ hàng thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/cart/items/{itemId}")
+    public ResponseEntity<?> removeItemFromCart(@PathVariable Long itemId, Principal principal) {
+        try {
+            userService.removeItemFromCart(principal.getName(), itemId);
+            return ResponseEntity.ok(Map.of("message", "Xóa sản phẩm khỏi giỏ hàng thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/cart")
+    public ResponseEntity<?> getCartItems(Principal principal) {
+        try {
+            List<CartItemResponseDTO> listItem = userService.getCartItems(principal.getName());
+            return ResponseEntity.ok(listItem);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("cart/items/{itemId}")
+    public ResponseEntity<?> updateCartItem(@PathVariable Long itemId,
+                                            @RequestBody CartItemDTO cartItemDTO,
+                                            Principal principal) {
+        try {
+            userService.updateItemCart(principal.getName(), cartItemDTO, itemId);
+            return ResponseEntity.ok(Map.of("message", "Cập nhật sản phẩm trong giỏ hàng thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/cart/count")
+    public ResponseEntity<?> getCartItemCount(Principal principal) {
+        try {
+            Long count = userService.getCartItemCount(principal.getName());
+            return ResponseEntity.ok(Map.of("count item", count));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
     }
 }
