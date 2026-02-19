@@ -3,6 +3,7 @@ package com.sports4u.sports4u_backend.service.impl;
 import com.sports4u.sports4u_backend.converter.ConvertCartItem;
 import com.sports4u.sports4u_backend.converter.UserEntityToDTO;
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemDTO;
+import com.sports4u.sports4u_backend.dto.cartdto.CartItemIdsRequestDTO;
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemResponseDTO;
 import com.sports4u.sports4u_backend.dto.userdto.*;
 import com.sports4u.sports4u_backend.entity.*;
@@ -390,6 +391,24 @@ public class UserServiceImpl implements IUserService {
                 .orElseThrow(() -> new NoSuchElementException("Tài khoản không tồn tại"));
 
         return cartItemRepository.sumQuantityByUserId(userEntity.getUserId());
+    }
+
+    @Override
+    public List<CartItemResponseDTO> getCartItemsByIds(String email, CartItemIdsRequestDTO itemIds) {
+
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User không tồn tại"));
+
+
+        List<CartItemEntity> items = cartItemRepository.findByCartItemIdInAndUser_UserId(itemIds.getItemIds(), user.getUserId());
+
+        if (items.isEmpty()) {
+            throw new IllegalArgumentException("Không tìm thấy sản phẩm trong giỏ hàng");
+        }
+
+        return items.stream()
+                .map(ConvertCartItem::convertToCartItemResponseDTO)
+                .toList();
     }
 
 

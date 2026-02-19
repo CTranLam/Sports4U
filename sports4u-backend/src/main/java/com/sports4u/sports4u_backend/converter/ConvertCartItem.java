@@ -1,6 +1,7 @@
 package com.sports4u.sports4u_backend.converter;
 
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemDTO;
+import com.sports4u.sports4u_backend.dto.cartdto.CartItemResponseDTO;
 import com.sports4u.sports4u_backend.entity.CartItemEntity;
 import com.sports4u.sports4u_backend.entity.ProductEntity;
 import com.sports4u.sports4u_backend.entity.UserEntity;
@@ -23,5 +24,15 @@ public class ConvertCartItem {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
+    }
+
+    public static CartItemResponseDTO convertToCartItemResponseDTO(CartItemEntity cartItemEntity) {
+        if (cartItemEntity == null) return null;
+
+        return CartItemResponseDTO.builder()
+                .productId(cartItemEntity.getProduct().getProductId())
+                .price(cartItemEntity.getPriceAtAdded())
+                .quantity(cartItemEntity.getQuantity())
+                .build();
     }
 }

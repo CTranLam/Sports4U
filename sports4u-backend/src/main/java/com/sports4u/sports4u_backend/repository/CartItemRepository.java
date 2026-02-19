@@ -15,4 +15,6 @@ public interface CartItemRepository extends JpaRepository<CartItemEntity, Long> 
     @Query("SELECT COALESCE(SUM(c.quantity), 0) FROM CartItemEntity c WHERE c.user.userId = :userId")
     Long sumQuantityByUserId(Long userId);
 
+    List<CartItemEntity> findByCartItemIdInAndUser_UserId(List<Long> ids, Long userId);
+
 }

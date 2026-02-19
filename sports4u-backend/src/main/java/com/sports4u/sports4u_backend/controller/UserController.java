@@ -1,6 +1,7 @@
 package com.sports4u.sports4u_backend.controller;
 
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemDTO;
+import com.sports4u.sports4u_backend.dto.cartdto.CartItemIdsRequestDTO;
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemResponseDTO;
 import com.sports4u.sports4u_backend.dto.userdto.*;
 import com.sports4u.sports4u_backend.service.IAddressService;
@@ -244,4 +245,22 @@ public class UserController {
                     .body(Map.of("message", e.getMessage()));
         }
     }
+
+    @GetMapping("cart/list-item")
+    public ResponseEntity<?> getCartItemsByIds(
+            @RequestBody CartItemIdsRequestDTO itemIds,
+            Principal principal
+    ) {
+        try {
+            List<CartItemResponseDTO> items =
+                    userService.getCartItemsByIds(principal.getName(), itemIds);
+
+            return ResponseEntity.ok(items);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
 }
