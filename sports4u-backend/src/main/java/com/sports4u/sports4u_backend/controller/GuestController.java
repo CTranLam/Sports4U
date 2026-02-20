@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
@@ -29,26 +28,30 @@ public class GuestController {
     }
 
     @GetMapping("/categories/{id}/products")
-    public ResponseEntity<?> getProductsByCategoryId(@PathVariable Long id,
+    public ResponseEntity<ResponseDTO<PageResponse<?>>> getProductsByCategoryId(@PathVariable Long id,
                                                      @RequestParam(defaultValue = "1") int page,
                                                      @RequestParam(defaultValue = "12") int size) {
         try {
             PageResponse<?> products = productService.getProductsByCategory(id, page, size);
-            return ResponseEntity.ok(products);
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy danh sách sản phẩm thành công", products)
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
 
     }
 
     @GetMapping("/products/{id}")
-    public ResponseEntity<?> getProductById(@PathVariable Long id) {
+    public ResponseEntity<ResponseDTO<?>> getProductById(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(productService.getProductById(id));
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy thông tin sản phẩm thành công", productService.getProductById(id))
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
     }
 }

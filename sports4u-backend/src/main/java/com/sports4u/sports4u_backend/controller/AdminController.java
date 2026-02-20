@@ -70,7 +70,7 @@ public class AdminController {
     }
 
     @GetMapping("/accounts")
-    public ResponseEntity<?> getAccounts(
+    public ResponseEntity<ResponseDTO<PageResponse<UserResponseDTO>>> getAccounts(
             @RequestParam(required = false) Long status,
             @RequestParam(required = false) String role,
             @RequestParam(defaultValue = "1") int page,
@@ -81,86 +81,87 @@ public class AdminController {
             try {
                 roleEnum = Role.valueOf(role);
             } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body(Map.of(
-                        "success", false,
-                        "message", "Role không hợp lệ. Chỉ chấp nhận: ROLE_USER, ROLE_ADMIN, ROLE_GUEST"
-                ));
+                return ResponseEntity.badRequest()
+                        .body(new ResponseDTO<>("Role không hợp lệ. Chỉ chấp nhận: ROLE_USER, ROLE_ADMIN, ROLE_GUEST", null));
             }
         }
 
         PageResponse<UserResponseDTO> accounts = userService.getAccounts(status, roleEnum, page, size);
-        return ResponseEntity.ok(accounts);
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy danh sách tài khoản thành công", accounts)
+        );
     }
 
     @PostMapping("/categories")
-    public ResponseEntity<?> insertCategories(@RequestBody @Valid CategoryRequestDTO categoryRequestDTO) {
+    public ResponseEntity<ResponseDTO<CategoryDTO>> insertCategories(@RequestBody @Valid CategoryRequestDTO categoryRequestDTO) {
         CategoryDTO categoryDTO = categoryService.insertCategory(categoryRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(categoryDTO);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ResponseDTO<>("Tạo danh mục thành công", categoryDTO));
     }
 
     @GetMapping("/categories")
-    public ResponseEntity<?> getCategories(
+    public ResponseEntity<ResponseDTO<?>> getCategories(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "5") int size) {
 
-        return ResponseEntity.ok(categoryService.getCategories(page, size));
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy danh sách danh mục thành công", categoryService.getCategories(page, size))
+        );
     }
 
 
     @DeleteMapping("/categories/{id}")
-    public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<ResponseDTO<String>> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Category deleted successfully"
-        ));
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Xóa danh mục thành công", null)
+        );
     }
 
     @GetMapping("/categories/{id}/products")
-    public ResponseEntity<?> getProductsByCategoryId(@PathVariable Long id,
+    public ResponseEntity<ResponseDTO<PageResponse<?>>> getProductsByCategoryId(@PathVariable Long id,
                                                      @RequestParam(defaultValue = "1") int page,
                                                      @RequestParam(defaultValue = "12") int size) {
         try {
             PageResponse<?> products = productService.getProductsByCategoryForAdmin(id, page, size);
-            return ResponseEntity.ok(products);
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy danh sách sản phẩm thành công", products)
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
 
     }
 
     @PostMapping(value = "/product", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createProduct(
+    public ResponseEntity<ResponseDTO<?>> createProduct(
             @RequestPart("data") @Valid ProductRequestDTO data,
             @RequestPart("image") MultipartFile imageFile) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(productService.createProduct(data, imageFile));
+                .body(new ResponseDTO<>("Tạo sản phẩm thành công", productService.createProduct(data, imageFile)));
     }
 
     @PutMapping(value = "/products/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateProduct(
+    public ResponseEntity<ResponseDTO<ProductAdminDTO>> updateProduct(
             @PathVariable Long id,
             @RequestPart("data") @Valid ProductRequestDTO data,
             @RequestPart(value = "image", required = false) MultipartFile imageFile) {
 
         ProductAdminDTO updated = productService.updateProduct(id, data, imageFile);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", updated,
-                "message", "Cập nhật sản phẩm thành công"
-        ));
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Cập nhật sản phẩm thành công", updated)
+        );
     }
 
     @DeleteMapping("/products/{id}")
-    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<ResponseDTO<String>> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Xóa sản phẩm thành công"
-        ));
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Xóa sản phẩm thành công", null)
+        );
     }
 
     @GetMapping("orders")
@@ -180,19 +181,15 @@ public class AdminController {
     }
 
     @PutMapping("/orders/{id}/status")
-    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
+    public ResponseEntity<ResponseDTO<String>> updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
         try {
             orderService.updateOrderStatus(id, status);
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "Cập nhật trạng thái đơn hàng thành công"
-            ));
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Cập nhật trạng thái đơn hàng thành công", null)
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of(
-                            "success", false,
-                            "message", e.getMessage()
-                    ));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
     }
 

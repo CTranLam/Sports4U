@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
@@ -34,5 +35,10 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
         ORDER BY CAST(o.orderDate AS date)
     """)
     List<Object[]> countOrdersFromDate(LocalDateTime startDate);
+
+    Page<OrderEntity> findByUser_UserId(Long userId, Pageable pageable);
+
+    Optional<OrderEntity> findByOrderIdAndUser_UserId(Long orderId, Long userId);
+
 }
 

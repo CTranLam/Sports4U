@@ -1,10 +1,10 @@
 package com.sports4u.sports4u_backend.controller;
 
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemDTO;
-import com.sports4u.sports4u_backend.dto.cartdto.CartItemIdsRequestDTO;
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemResponseDTO;
 import com.sports4u.sports4u_backend.dto.userdto.*;
 import com.sports4u.sports4u_backend.service.IAddressService;
+import com.sports4u.sports4u_backend.service.IOrderService;
 import com.sports4u.sports4u_backend.service.IUserService;
 import com.sports4u.sports4u_backend.utils.ResponseDTO;
 import jakarta.validation.Valid;
@@ -28,6 +28,8 @@ public class UserController {
     private final IUserService userService;
 
     private final IAddressService addressService;
+
+    private final IOrderService orderService;
 
     @PostMapping("/register")
     public ResponseEntity<ResponseDTO<?>> registerUser(@RequestBody UserRegisterDTO userRegisterDTO, BindingResult result) {
@@ -272,5 +274,33 @@ public class UserController {
         }
     }
 
+    @GetMapping("/orders")
+    public ResponseEntity<ResponseDTO<?>> getMyOrders(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Principal principal) {
+
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy danh sách đơn hàng thành công", orderService.getOrders(principal.getName(), page, size))
+        );
+    }
+
+    @GetMapping("/orders/{id}")
+    public ResponseEntity<ResponseDTO<?>> getOrderDetail(@PathVariable Long id, Principal principal) {
+
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy chi tiết đơn hàng thành công", orderService.getOrderDetail(id, principal.getName()))
+        );
+    }
+
+    @PutMapping("/orders/{id}/cancel")
+    public ResponseEntity<ResponseDTO<String>> cancelOrder(@PathVariable Long id, Principal principal) {
+
+        orderService.cancelOrder(id, principal.getName());
+
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Hủy đơn hàng thành công", null)
+        );
+    }
 
 }

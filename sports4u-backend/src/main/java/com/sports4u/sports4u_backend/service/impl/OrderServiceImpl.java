@@ -287,5 +287,94 @@ public class OrderServiceImpl implements IOrderService {
         orderRepository.save(order);
     }
 
+    @Override
+    public PageResponse<OrderSummaryDTO> getOrders(String email, int page, int size) {
+        Long userId = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("User không tồn tại"))
+                .getUserId();
+
+        Pageable pageable = PageRequest.of(page-1, size, Sort.by("orderDate").descending());
+
+        Page<OrderEntity> orders = orderRepository.findByUser_UserId(userId, pageable);
+
+        return PageResponse.<OrderSummaryDTO>builder()
+                .content(
+                        orders.getContent().stream()
+                                .map(order -> OrderSummaryDTO.builder()
+                                        .orderId(order.getOrderId())
+                                        .status(order.getStatus().name())
+                                        .totalAmount(order.getTotalAmount())
+                                        .orderDate(order.getOrderDate())
+                                        .build()
+                                )
+                                .toList()
+                )
+                .pageNumber(orders.getNumber())
+                .pageSize(orders.getSize())
+                .totalElements(orders.getTotalElements())
+                .totalPages(orders.getTotalPages())
+                .last(orders.isLast())
+                .build();
+    }
+
+    @Override
+    public OrderDetailDTO getOrderDetail(Long orderId, String email) {
+
+        Long userId = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("User không tồn tại"))
+                .getUserId();
+
+        OrderEntity order = orderRepository.findByOrderIdAndUser_UserId(orderId, userId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy đơn hàng"));
+
+        List<OrderDetailEntity> orderDetails = orderDetailRepository.findByOrder_OrderId(orderId);
+
+        List<OrderItemDetailDTO> items = orderDetails.stream()
+                .map(detail -> {
+                    ProductEntity product = productRepository.findById(detail.getProductId())
+                            .orElse(null);
+
+                    String productName = product != null ? product.getProductName() : "Sản phẩm không tồn tại";
+                    String thumbnail = product != null ? product.getImageUrl() : null;
+
+                    return OrderItemDetailDTO.builder()
+                            .productId(detail.getProductId())
+                            .productName(productName)
+                            .thumbnail(thumbnail)
+                            .price(detail.getUnitPrice())
+                            .quantity(detail.getQuantity().intValue())
+                            .subtotal(detail.getSubtotal())
+                            .build();
+                })
+                .toList();
+
+        return OrderDetailDTO.builder()
+                .orderId(order.getOrderId())
+                .status(order.getStatus().name())
+                .orderDate(order.getOrderDate())
+                .fullAddress(order.getFullAddress())
+                .totalAmount(order.getTotalAmount())
+                .items(items)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrder(Long orderId, String email) {
+
+        Long userId = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("User không tồn tại"))
+                .getUserId();
+
+        OrderEntity order = orderRepository.findByOrderIdAndUser_UserId(orderId, userId)
+                .orElseThrow(() -> new NoSuchElementException("Không tìm thấy đơn hàng"));
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new IllegalStateException("Chỉ đơn hàng đang chờ xác nhận mới được hủy");
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+    }
 
 }

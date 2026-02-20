@@ -70,8 +70,7 @@
 
 
                         <div id="auth-buttons" class="d-flex gap-2">
-                            <a href="./login.html"
-                                class="btn btn-outline-secondary btn-sm d-none d-sm-inline-block">
+                            <a href="./login.html" class="btn btn-outline-secondary btn-sm d-none d-sm-inline-block">
                                 Đăng nhập
                             </a>
                             <a href="./register.html" class="btn btn-dark btn-sm d-none d-sm-inline-block">
@@ -145,7 +144,8 @@
                             <div class="card-footer bg-white py-3 px-4">
                                 <div class="row align-items-center">
                                     <div class="col-md-6">
-                                        <p class="mb-0"><span class="text-muted">Tổng cộng:</span> <span class="fw-semibold fs-5">$249.00</span></p>
+                                        <p class="mb-0"><span class="text-muted">Tổng cộng:</span> <span
+                                                class="fw-semibold fs-5">$249.00</span></p>
                                     </div>
                                     <div class="col-md-6 text-md-end">
                                         <button class="btn btn-danger">Hủy đơn hàng</button>
@@ -183,7 +183,8 @@
                             <div class="card-footer bg-white py-3 px-4">
                                 <div class="row align-items-center">
                                     <div class="col-md-6">
-                                        <p class="mb-0"><span class="text-muted">Tổng cộng:</span> <span class="fw-semibold fs-5">$498.00</span></p>
+                                        <p class="mb-0"><span class="text-muted">Tổng cộng:</span> <span
+                                                class="fw-semibold fs-5">$498.00</span></p>
                                     </div>
                                     <div class="col-md-6 text-md-end">
                                         <button class="btn btn-danger">Hủy đơn hàng</button>
@@ -221,7 +222,8 @@
                             <div class="card-footer bg-white py-3 px-4">
                                 <div class="row align-items-center">
                                     <div class="col-md-6">
-                                        <p class="mb-0"><span class="text-muted">Tổng cộng:</span> <span class="fw-semibold fs-5">$249.00</span></p>
+                                        <p class="mb-0"><span class="text-muted">Tổng cộng:</span> <span
+                                                class="fw-semibold fs-5">$249.00</span></p>
                                     </div>
                                     <div class="col-md-6 text-md-end">
                                         <button class="btn btn-danger">Hủy đơn hàng</button>
@@ -239,7 +241,48 @@
             </div>
         </div>
     </main>
+    <!-- ORDER DETAIL MODAL -->
+    <div class="modal fade" id="orderDetailModal">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
 
+                <div class="modal-header">
+                    <h5 class="modal-title">Chi tiết đơn hàng</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <p class="mb-1"><strong>Mã đơn:</strong> <span id="modalOrderId"></span></p>
+                        <p class="mb-1"><strong>Ngày đặt:</strong> <span id="modalOrderDate"></span></p>
+                        <p class="mb-0"><strong>Trạng thái:</strong> <span id="modalOrderStatus"></span></p>
+                    </div>
+
+                    <hr>
+
+                    <div id="modalOrderItems" class="vstack gap-3"></div>
+
+                    <hr>
+
+                    <div>
+                        <h6 class="fw-semibold">Thông tin giao hàng</h6>
+                        <p id="modalReceiver" class="mb-1"></p>
+                        <p id="modalAddress" class="text-muted mb-0"></p>
+                    </div>
+
+                    <hr>
+
+                    <div class="text-end">
+                        <span class="text-muted">Tổng thanh toán:</span>
+                        <span class="fs-4 fw-bold text-danger" id="modalTotal"></span>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
 
     <footer class="border-top">
         <div class="container">
