@@ -4,6 +4,7 @@ import com.sports4u.sports4u_backend.dto.categorydto.CategoryDTO;
 import com.sports4u.sports4u_backend.service.ICategoryService;
 import com.sports4u.sports4u_backend.service.IProductService;
 import com.sports4u.sports4u_backend.utils.PageResponse;
+import com.sports4u.sports4u_backend.utils.ResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +22,10 @@ public class GuestController {
     private final IProductService productService;
 
     @GetMapping("/categories")
-    public ResponseEntity<List<CategoryDTO>> getAllCategoriesForHome() {
-        return ResponseEntity.ok(categoryService.getCategories());
+    public ResponseEntity<ResponseDTO<List<CategoryDTO>>> getAllCategoriesForHome() {
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy danh sách danh mục thành công", categoryService.getCategories())
+        );
     }
 
     @GetMapping("/categories/{id}/products")

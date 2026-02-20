@@ -3,6 +3,7 @@ package com.sports4u.sports4u_backend.service;
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemDTO;
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemIdsRequestDTO;
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemResponseDTO;
+import com.sports4u.sports4u_backend.dto.orderdto.OrderPreviewResponseDTO;
 import com.sports4u.sports4u_backend.dto.userdto.*;
 import com.sports4u.sports4u_backend.enums.Role;
 import com.sports4u.sports4u_backend.utils.PageResponse;
@@ -27,5 +28,4 @@ public interface IUserService {
     List<CartItemResponseDTO> getCartItems(String email) throws NoSuchElementException;
     void updateItemCart(String email, CartItemDTO cartItemDTO, Long itemId) throws NoSuchElementException;
     Long getCartItemCount(String email) throws NoSuchElementException;
-    List<CartItemResponseDTO> getCartItemsByIds(String email, CartItemIdsRequestDTO request) throws NoSuchElementException;
 }

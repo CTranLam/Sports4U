@@ -6,6 +6,7 @@ import com.sports4u.sports4u_backend.dto.cartdto.CartItemResponseDTO;
 import com.sports4u.sports4u_backend.dto.userdto.*;
 import com.sports4u.sports4u_backend.service.IAddressService;
 import com.sports4u.sports4u_backend.service.IUserService;
+import com.sports4u.sports4u_backend.utils.ResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,87 +30,91 @@ public class UserController {
     private final IAddressService addressService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserRegisterDTO userRegisterDTO, BindingResult result) {
+    public ResponseEntity<ResponseDTO<?>> registerUser(@RequestBody UserRegisterDTO userRegisterDTO, BindingResult result) {
         try{
             if (result.hasErrors()) {
                 List<String> errorMessages = result.getFieldErrors()
                         .stream()
                         .map(FieldError::getDefaultMessage)
                         .toList();
-                return ResponseEntity.badRequest().body(Map.of("errors", errorMessages));
+                return ResponseEntity.badRequest()
+                        .body(new ResponseDTO<>("Lỗi validation", errorMessages));
             }
             if (!userRegisterDTO.getPassword().equals(userRegisterDTO.getRetypedPassword())) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Mật khẩu nhập lại không khớp"));
+                return ResponseEntity.badRequest()
+                        .body(new ResponseDTO<>("Mật khẩu nhập lại không khớp", null));
             }
             UserRegisterResponseDTO userRegisterResponseDTO = userService.createUser(userRegisterDTO);
-            Map<String,Object> response = new HashMap<>();
-            response.put("message", "Register successfully");
-            response.put("username", userRegisterResponseDTO.getUsername());
-            response.put("role", userRegisterResponseDTO.getRole());
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Đăng ký thành công", userRegisterResponseDTO)
+            );
 
         }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody UserLoginDTO userDTO, BindingResult result) {
+    public ResponseEntity<ResponseDTO<?>> login(@Valid @RequestBody UserLoginDTO userDTO, BindingResult result) {
         if (result.hasErrors()) {
             List<String> errors = result.getFieldErrors()
                     .stream()
                     .map(FieldError::getDefaultMessage)
                     .toList();
-            return ResponseEntity.badRequest().body(Map.of("errors", errors));
+            return ResponseEntity.badRequest()
+                    .body(new ResponseDTO<>("Lỗi validation", errors));
         }
 
         try {
             UserResponseDTO userResponseDTO = userService.findByUsername(userDTO.getUserName());
             if (userResponseDTO == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("message", "Tài khoản không tồn tại"));
+                        .body(new ResponseDTO<>("Tài khoản không tồn tại", null));
             }
             String token = userService.login(userDTO.getUserName(), userDTO.getPassword());
             if (token == null || token.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("message", "Sai mật khẩu"));
+                        .body(new ResponseDTO<>("Sai mật khẩu", null));
             }
             Map<String, Object> response = new HashMap<>();
-            response.put("message", "Đăng nhập thành công");
             response.put("token", token);
             response.put("email", userResponseDTO.getUserName());
             response.put("id", userResponseDTO.getUserId());
             response.put("role", userResponseDTO.getRole());
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Đăng nhập thành công", response)
+            );
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ResponseDTO<String>> sendOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
 
         if (email == null || email.isEmpty()) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "Email không được để trống"));
+                    .body(new ResponseDTO<>("Email không được để trống", null));
         }
 
         try {
             userService.sendOtp(email);
-            return ResponseEntity.ok(Map.of("message", "OTP sẽ được gửi đến email của bạn"));
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("OTP sẽ được gửi đến email của bạn", null)
+            );
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "Email không tồn tại"));
+                    .body(new ResponseDTO<>("Email không tồn tại", null));
         }
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ResponseDTO<String>> verifyOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String otp = request.get("otp");
 
@@ -117,150 +122,155 @@ public class UserController {
 
         if (!isValid) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "OTP không hợp lệ hoặc đã hết hạn"));
+                    .body(new ResponseDTO<>("OTP không hợp lệ hoặc đã hết hạn", null));
         }
 
-        return ResponseEntity.ok(Map.of("message", "Xác thực OTP thành công"));
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Xác thực OTP thành công", null)
+        );
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody Map<String, String> request){
+    public ResponseEntity<ResponseDTO<String>> resetPassword(@Valid @RequestBody Map<String, String> request){
         String email = request.get("email");
         String newPassword = request.get("newPassword");
         if(newPassword == null || newPassword.length() < 6){
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "Mật khẩu mới không hợp lệ!"));
+                    .body(new ResponseDTO<>("Mật khẩu mới không hợp lệ!", null));
         }
         userService.setNewPassword(email, newPassword);
-        return ResponseEntity.ok(Map.of("message", "Mật khẩu đã được thay đổi"));
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Mật khẩu đã được thay đổi", null)
+        );
     }
 
     @PostMapping("/resend-otp")
-    public ResponseEntity<?> resendOTP(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ResponseDTO<String>> resendOTP(@RequestBody Map<String, String> request) {
         String email = request.get("email");
 
         if (email == null || email.isEmpty()) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("message", "Email không được để trống"));
+                    .body(new ResponseDTO<>("Email không được để trống", null));
         }
 
         try {
             userService.sendOtp(email);
-            return ResponseEntity.ok(Map.of("message", "OTP sẽ được gửi đến email của bạn"));
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("OTP sẽ được gửi đến email của bạn", null)
+            );
         }
         catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Email không tồn tại"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ResponseDTO<>("Email không tồn tại", null));
         }
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileDTO request,
+    public ResponseEntity<ResponseDTO<String>> updateProfile(@RequestBody UpdateProfileDTO request,
                                            Principal principal) {
         userService.updateUserInfo(principal.getName(), request);
 
-        return ResponseEntity.ok("Cập nhật thành công");
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Cập nhật thành công", null)
+        );
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<?> getUserProfile(Principal principal) {
+    public ResponseEntity<ResponseDTO<UserResponseDTO>> getUserProfile(Principal principal) {
         try {
             UserResponseDTO userResponseDTO = userService.findByUsername(principal.getName());
-            return ResponseEntity.ok(userResponseDTO);
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy thông tin thành công", userResponseDTO)
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
     }
 
     @GetMapping("/provinces")
-    public ResponseEntity<?> getProvinces() {
+    public ResponseEntity<ResponseDTO<?>> getProvinces() {
         return ResponseEntity.ok(
-                addressService.getAllProvinces()
+                new ResponseDTO<>("Lấy danh sách tỉnh/thành phố thành công", addressService.getAllProvinces())
         );
     }
 
     @GetMapping("/wards")
-    public ResponseEntity<?> getWardsByProvince(
+    public ResponseEntity<ResponseDTO<?>> getWardsByProvince(
             @RequestParam String provinceCode) {
 
         return ResponseEntity.ok(
-                addressService.getWardsByProvince(provinceCode)
+                new ResponseDTO<>("Lấy danh sách quận/huyện thành công", addressService.getWardsByProvince(provinceCode))
         );
     }
 
     @PostMapping("/cart/items")
-    public ResponseEntity<?> addItemToCart(@RequestBody CartItemDTO cartItemDTO,
+    public ResponseEntity<ResponseDTO<String>> addItemToCart(@RequestBody CartItemDTO cartItemDTO,
                                            Principal principal) {
         try {
             userService.addItemToCart(principal.getName(), cartItemDTO);
-            return ResponseEntity.ok(Map.of("message", "Thêm sản phẩm vào giỏ hàng thành công"));
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Thêm sản phẩm vào giỏ hàng thành công", null)
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
     }
 
     @DeleteMapping("/cart/items/{itemId}")
-    public ResponseEntity<?> removeItemFromCart(@PathVariable Long itemId, Principal principal) {
+    public ResponseEntity<ResponseDTO<String>> removeItemFromCart(@PathVariable Long itemId, Principal principal) {
         try {
             userService.removeItemFromCart(principal.getName(), itemId);
-            return ResponseEntity.ok(Map.of("message", "Xóa sản phẩm khỏi giỏ hàng thành công"));
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Xóa sản phẩm khỏi giỏ hàng thành công", null)
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
     }
 
     @GetMapping("/cart")
-    public ResponseEntity<?> getCartItems(Principal principal) {
+    public ResponseEntity<ResponseDTO<List<CartItemResponseDTO>>> getCartItems(Principal principal) {
         try {
             List<CartItemResponseDTO> listItem = userService.getCartItems(principal.getName());
-            return ResponseEntity.ok(listItem);
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy giỏ hàng thành công", listItem)
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
     }
 
     @PutMapping("cart/items/{itemId}")
-    public ResponseEntity<?> updateCartItem(@PathVariable Long itemId,
+    public ResponseEntity<ResponseDTO<String>> updateCartItem(@PathVariable Long itemId,
                                             @RequestBody CartItemDTO cartItemDTO,
                                             Principal principal) {
         try {
             userService.updateItemCart(principal.getName(), cartItemDTO, itemId);
-            return ResponseEntity.ok(Map.of("message", "Cập nhật sản phẩm trong giỏ hàng thành công"));
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Cập nhật sản phẩm trong giỏ hàng thành công", null)
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
     }
 
     @GetMapping("/cart/count")
-    public ResponseEntity<?> getCartItemCount(Principal principal) {
+    public ResponseEntity<ResponseDTO<Long>> getCartItemCount(Principal principal) {
         try {
             Long count = userService.getCartItemCount(principal.getName());
-            return ResponseEntity.ok(Map.of("count item", count));
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy số lượng sản phẩm trong giỏ hàng thành công", count)
+            );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
+                    .body(new ResponseDTO<>(e.getMessage(), null));
         }
     }
 
-    @GetMapping("cart/list-item")
-    public ResponseEntity<?> getCartItemsByIds(
-            @RequestBody CartItemIdsRequestDTO itemIds,
-            Principal principal
-    ) {
-        try {
-            List<CartItemResponseDTO> items =
-                    userService.getCartItemsByIds(principal.getName(), itemIds);
-
-            return ResponseEntity.ok(items);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
-        }
-    }
 
 }

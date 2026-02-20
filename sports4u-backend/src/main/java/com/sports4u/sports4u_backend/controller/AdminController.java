@@ -8,10 +8,9 @@ import com.sports4u.sports4u_backend.dto.userdto.UserInAdminDTO;
 import com.sports4u.sports4u_backend.dto.userdto.UserResponseDTO;
 import com.sports4u.sports4u_backend.dto.userdto.UserUpdateDTO;
 import com.sports4u.sports4u_backend.enums.Role;
-import com.sports4u.sports4u_backend.service.ICategoryService;
-import com.sports4u.sports4u_backend.service.IProductService;
-import com.sports4u.sports4u_backend.service.IUserService;
+import com.sports4u.sports4u_backend.service.*;
 import com.sports4u.sports4u_backend.utils.PageResponse;
+import com.sports4u.sports4u_backend.utils.ResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,6 +30,10 @@ public class AdminController {
     private final ICategoryService categoryService;
 
     private final IProductService productService;
+
+    private final IOrderService orderService;
+
+    private final IDashboardService dashboardService;
 
     @PostMapping("/account")
     public ResponseEntity<?> createAccount(@RequestBody @Valid UserInAdminDTO requestAdminDTO) {
@@ -158,6 +161,67 @@ public class AdminController {
                 "success", true,
                 "message", "Xóa sản phẩm thành công"
         ));
+    }
+
+    @GetMapping("orders")
+    public ResponseEntity<?> getOrders(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size){
+        try {
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy danh sách đơn hàng thành công", orderService.getOrdersForAdmin(status, page, size))
+            );
+
+        }catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseDTO<>(e.getMessage(), null));
+        }
+    }
+
+    @PutMapping("/orders/{id}/status")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
+        try {
+            orderService.updateOrderStatus(id, status);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Cập nhật trạng thái đơn hàng thành công"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of(
+                            "success", false,
+                            "message", e.getMessage()
+                    ));
+        }
+    }
+
+    @GetMapping("/dashboard/summary")
+    public ResponseEntity<?> getSummary() {
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy thành công thống kê tổng quan", dashboardService.getSummary())
+        );
+    }
+
+    @GetMapping("/dashboard/revenue-by-month")
+    public ResponseEntity<?> getRevenue(@RequestParam int year) {
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy thành công doanh thu theo tháng", dashboardService.getRevenueByMonth(year))
+        );
+    }
+
+    @GetMapping("/dashboard/product-by-category")
+    public ResponseEntity<?> getProductByCategory() {
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy thành công thống kê sản phẩm theo danh mục", dashboardService.getProductByCategory())
+        );
+    }
+
+    @GetMapping("/dashboard/orders-last-7-days")
+    public ResponseEntity<?> getOrdersLast7Days() {
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy thành công thống kê đơn hàng 7 ngày gần nhất", dashboardService.getOrdersLast7Days())
+        );
     }
 
 }

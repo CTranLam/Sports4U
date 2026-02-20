@@ -23,8 +23,9 @@ public class OrderEntity {
     @Column(name = "order_id")
     private Long orderId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
 
     @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;

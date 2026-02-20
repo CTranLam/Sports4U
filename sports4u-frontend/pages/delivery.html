@@ -138,7 +138,6 @@
                                     <th>Sản phẩm</th>
                                     <th class="text-center">Số lượng</th>
                                     <th class="text-end">Giá</th>
-                                    <th class="text-center" style="width: 60px;"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -151,11 +150,6 @@
                                     </td>
                                     <td class="text-center">1</td>
                                     <td class="text-end">USD 249.00</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-danger" title="Xóa">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
                                 </tr>
                                 <tr>
                                     <td>
@@ -166,11 +160,6 @@
                                     </td>
                                     <td class="text-center">1</td>
                                     <td class="text-end">USD 249.00</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-danger" title="Xóa">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -201,13 +190,30 @@
                             <span>Tổng cộng</span>
                             <span>USD 508.00</span>
                         </div>
+                        <h6 class="mb-3">Phương thức thanh toán</h6>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD"
+                                checked>
+                            <label class="form-check-label" for="cod">
+                                Thanh toán khi nhận hàng (COD)
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="bank"
+                                value="BANK_TRANSFER">
+                            <label class="form-check-label" for="bank">
+                                Chuyển khoản ngân hàng
+                            </label>
+                        </div>
 
                         <button class="btn btn-dark w-100">
                             Xác nhận đặt hàng
                         </button>
 
                         <a href="./cart.html" class="btn btn-outline-secondary w-100 mt-2">
-                            Quay lại giỏ hàng
+                            Quay lại
                         </a>
 
                     </div>

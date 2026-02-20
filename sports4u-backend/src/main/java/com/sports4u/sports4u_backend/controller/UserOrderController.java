@@ -1,16 +1,22 @@
 package com.sports4u.sports4u_backend.controller;
 
+import com.sports4u.sports4u_backend.dto.cartdto.CartItemIdsRequestDTO;
+import com.sports4u.sports4u_backend.dto.cartdto.CartItemResponseDTO;
+import com.sports4u.sports4u_backend.dto.orderdto.BuyNowRequestDTO;
 import com.sports4u.sports4u_backend.dto.orderdto.CreateOrderRequestDTO;
+import com.sports4u.sports4u_backend.dto.orderdto.OrderPreviewResponseDTO;
 import com.sports4u.sports4u_backend.dto.orderdto.OrderResponseDTO;
 import com.sports4u.sports4u_backend.service.IOrderService;
+import com.sports4u.sports4u_backend.service.IUserService;
+import com.sports4u.sports4u_backend.utils.ResponseDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
@@ -18,10 +24,74 @@ import java.security.Principal;
 public class UserOrderController {
     private final IOrderService orderService;
 
-    @PostMapping("/checkout")
-    public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequestDTO request, Principal principal) {
-        String email = principal.getName();
-        OrderResponseDTO response = orderService.createOrder(email, request);
-        return ResponseEntity.ok(response);
+    private final IUserService userService;
+
+    // Lấy thông tin và tạo order ở cart
+    @PostMapping("cart/list-item")
+    public ResponseEntity<ResponseDTO<List<OrderPreviewResponseDTO>>> getCartItemsByIds(@RequestBody CartItemIdsRequestDTO itemIds, Principal principal){
+        try {
+            List<OrderPreviewResponseDTO> items = orderService.getCartItemsByIds(principal.getName(), itemIds);
+
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy thông tin sản phẩm thành công", items)
+            );
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseDTO<>(e.getMessage(), null));
+        }
     }
+
+    @PostMapping("/checkout/from-cart")
+    public ResponseEntity<ResponseDTO<OrderResponseDTO>> createOrderFromCart(@RequestBody CreateOrderRequestDTO request, Principal principal) {
+        try {
+            String email = principal.getName();
+            OrderResponseDTO response = orderService.createOrderFromCart(email, request);
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Tạo đơn hàng thành công", response)
+            );
+        }
+        catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ResponseDTO<>(e.getMessage(), null));
+        }
+    }
+
+    // Lấy thông tin và tạo order ở trang chi tiết sản phẩm
+    @PostMapping("/preview-from-product")
+    public ResponseEntity<ResponseDTO<?>> previewFromProduct(@RequestBody BuyNowRequestDTO request, Principal principal) {
+        try {
+            String email = principal.getName();
+
+            OrderPreviewResponseDTO previewProduct = orderService.previewFromProduct(email, request);
+
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy thông tin xác nhận đơn hàng thành công", previewProduct)
+            );
+
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest()
+                    .body(new ResponseDTO<>(ex.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/checkout/from-product")
+    public ResponseEntity<ResponseDTO<?>> createOrderFromProduct(@RequestBody BuyNowRequestDTO request, Principal principal) {
+        try {
+            String email = principal.getName();
+
+            OrderResponseDTO orderResponse = orderService.createOrderFromProduct(email, request);
+
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Tạo đơn hàng thành công", orderResponse)
+            );
+
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest()
+                    .body(new ResponseDTO<>(ex.getMessage(), null));
+        }
+    }
+
+
+
 }
