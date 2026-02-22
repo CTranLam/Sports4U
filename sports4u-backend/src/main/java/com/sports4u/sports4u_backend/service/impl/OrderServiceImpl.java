@@ -100,7 +100,7 @@ public class OrderServiceImpl implements IOrderService {
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
         order.setPaymentMethod(request.getPaymentMethod());
-        order.setPaymentStatus(PaymentStatus.PENDING);
+        order.setPaymentStatus(PaymentStatus.UNPAID);
 
         if (user.getProvince() == null || user.getWard() == null || user.getDetailAddress() == null) {
             throw new RuntimeException("Vui lòng cập nhật địa chỉ trước khi đặt hàng");
@@ -195,7 +195,7 @@ public class OrderServiceImpl implements IOrderService {
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
         order.setPaymentMethod(request.getPaymentMethod());
-        order.setPaymentStatus(PaymentStatus.PENDING);
+        order.setPaymentStatus(PaymentStatus.UNPAID);
 
         if (user.getProvince() == null || user.getWard() == null || user.getDetailAddress() == null) {
             throw new RuntimeException("Vui lòng cập nhật địa chỉ trước khi đặt hàng");

@@ -65,15 +65,18 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     private boolean isBypassToken(HttpServletRequest request) {
-        if (request.getServletPath().contains("/api/payment/")) {
+        // Bypass VNPay return URL (không yêu cầu JWT vì redirect từ VNPay)
+        if (request.getServletPath().contains("/payment/vnpay-return")) {
             return true;
         }
+
         final List<Pair<String, String>> bypassTokens = Arrays.asList(
                 Pair.of("/api/user/register", "POST"),
                 Pair.of("/api/user/login","POST"),
                 Pair.of("/api/user/forgot-password", "POST"),
                 Pair.of("/api/user/verify-otp", "POST"),
-                Pair.of("/api/user/reset-password", "POST")
+                Pair.of("/api/user/reset-password", "POST"),
+                Pair.of("/api/user/resend-otp", "POST")
         );
         for(Pair<String, String> bypassToken: bypassTokens) {
             if (request.getServletPath().contains(bypassToken.getFirst()) &&
