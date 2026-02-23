@@ -1,6 +1,7 @@
 package com.sports4u.sports4u_backend.service.impl;
 
 import com.sports4u.sports4u_backend.dto.categorydto.CategoryDTO;
+import com.sports4u.sports4u_backend.dto.categorydto.CategoryListResponse;
 import com.sports4u.sports4u_backend.dto.categorydto.CategoryRequestDTO;
 import com.sports4u.sports4u_backend.entity.CategoryEntity;
 import com.sports4u.sports4u_backend.exception.NotFoundException;
@@ -10,6 +11,8 @@ import com.sports4u.sports4u_backend.service.ICategoryService;
 import com.sports4u.sports4u_backend.utils.PageResponse;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,12 +25,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-@Builder
 public class CategoryServiceImpl implements ICategoryService {
     private final CategoryRepository categoryRepository;
 
     private final ProductRepository productRepository;
 
+    @Cacheable(value = "categoryList", key = "#page + '-' + #size")
     public PageResponse<CategoryDTO> getCategories(int page, int size) {
 
         Pageable pageable = PageRequest.of(page-1, size, Sort.by("categoryId").descending());
@@ -54,8 +57,9 @@ public class CategoryServiceImpl implements ICategoryService {
 
     }
 
-    public List<CategoryDTO> getCategories() {
-        return categoryRepository.findAllByIsDeletedFalse(Sort.by("categoryId"))
+    @Cacheable(value = "categoryList")
+    public CategoryListResponse getCategories() {
+        List<CategoryDTO> categories = categoryRepository.findAllByIsDeletedFalse(Sort.by("categoryId"))
                 .stream()
                 .map(category -> {
                     long productCount = productRepository
@@ -70,11 +74,16 @@ public class CategoryServiceImpl implements ICategoryService {
                             .build();
                 })
                 .toList();
+
+        return CategoryListResponse.builder()
+                .categories(categories)
+                .build();
     }
 
 
 
     @Override
+    @CacheEvict(value = "categoryList", allEntries = true)
     public CategoryDTO insertCategory(CategoryRequestDTO categoryRequestDTO) {
         if (categoryRepository.existsByCategoryNameIgnoreCase(categoryRequestDTO.getCategoryName())) {
             throw new IllegalArgumentException("Danh mục đã tồn tại");
@@ -92,6 +101,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
+    @CacheEvict(value = "categoryList", allEntries = true)
     public void deleteCategory(Long categoryId) {
         if (categoryId == null || categoryId <= 0) {
             throw new IllegalArgumentException("Danh mục không hợp lệ");

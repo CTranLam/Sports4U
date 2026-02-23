@@ -18,6 +18,7 @@ import com.sports4u.sports4u_backend.service.Redis.RateLimitLoginService;
 import com.sports4u.sports4u_backend.utils.JwtTokenUtil;
 import com.sports4u.sports4u_backend.utils.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -65,7 +66,9 @@ public class UserServiceImpl implements IUserService {
 
     @Transactional
     @Override
+    @CacheEvict(value = {"dashboardSummary"}, allEntries = true)
     public UserRegisterResponseDTO createUser(UserRegisterDTO userRegisterDTO) {
+        System.out.println("Registering new user and clearing dashboard cache");
         String username = userRegisterDTO.getUsername();
         String password = userRegisterDTO.getPassword();
 

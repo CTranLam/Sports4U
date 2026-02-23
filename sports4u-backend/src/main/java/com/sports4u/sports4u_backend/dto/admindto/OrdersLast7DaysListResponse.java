@@ -5,13 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class RevenueByMonthDTO {
-    private int month;
-    private BigDecimal revenue;
+@NoArgsConstructor
+public class OrdersLast7DaysListResponse {
+    private List<OrdersLast7DaysDTO> orders;
 }
+

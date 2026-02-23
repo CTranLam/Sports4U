@@ -1,6 +1,7 @@
 package com.sports4u.sports4u_backend.controller;
 
 import com.sports4u.sports4u_backend.dto.categorydto.CategoryDTO;
+import com.sports4u.sports4u_backend.dto.categorydto.CategoryListResponse;
 import com.sports4u.sports4u_backend.service.ICategoryService;
 import com.sports4u.sports4u_backend.service.IProductService;
 import com.sports4u.sports4u_backend.utils.PageResponse;
@@ -21,7 +22,7 @@ public class GuestController {
     private final IProductService productService;
 
     @GetMapping("/categories")
-    public ResponseEntity<ResponseDTO<List<CategoryDTO>>> getAllCategoriesForHome() {
+    public ResponseEntity<ResponseDTO<CategoryListResponse>> getAllCategoriesForHome() {
         return ResponseEntity.ok(
                 new ResponseDTO<>("Lấy danh sách danh mục thành công", categoryService.getCategories())
         );

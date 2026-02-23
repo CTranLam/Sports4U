@@ -12,6 +12,8 @@ import com.sports4u.sports4u_backend.service.ICloudinaryService;
 import com.sports4u.sports4u_backend.service.IProductService;
 import com.sports4u.sports4u_backend.utils.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,7 +37,9 @@ public class ProductServiceImpl implements IProductService {
 
 
     @Override
+    @Cacheable(value = "productList", key = "#categoryId + '-' + #page + '-' + #size")
     public PageResponse<ProductDTO> getProductsByCategory(Long categoryId, int page, int size) {
+        System.out.println("Fetching products from database for category: " + categoryId + ", page: " + page);
         Pageable pageable = PageRequest.of(
                 page - 1,
                 size,
@@ -64,7 +68,9 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
+    @Cacheable(value = "productList", key = "'admin-' + #categoryId + '-' + #page + '-' + #size")
     public PageResponse<ProductAdminDTO> getProductsByCategoryForAdmin(Long categoryId, int page, int size) {
+        System.out.println("Fetching products from database for admin - category: " + categoryId + ", page: " + page);
         Pageable pageable = PageRequest.of(
                 page - 1,
                 size,
@@ -93,7 +99,9 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
+    @CacheEvict(value = {"productDetail", "productList"}, allEntries = true)
     public ProductAdminDTO createProduct(ProductRequestDTO data, MultipartFile imageFile) {
+        System.out.println("Creating new product and clearing cache");
         boolean exists = productRepository
                 .existsByProductNameIgnoreCaseAndCategoryEntity_CategoryIdAndIsDeletedFalse(
                         data.getProductName(), data.getCategoryId()
@@ -143,7 +151,9 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
+    @CacheEvict(value = {"productDetail", "productList"}, allEntries = true)
     public ProductAdminDTO updateProduct(Long id, ProductRequestDTO data, MultipartFile imageFile) {
+        System.out.println("Updating product and clearing cache: " + id);
 
         ProductEntity product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Sản phẩm không tồn tại"));
@@ -168,7 +178,9 @@ public class ProductServiceImpl implements IProductService {
 
 
     @Override
+    @CacheEvict(value = {"productDetail", "productList", "dashboardSummary", "productByCategory"}, allEntries = true)
     public void deleteProduct(Long productId) throws IllegalArgumentException {
+        System.out.println("Deleting product and clearing cache: " + productId);
         ProductEntity productEntity = productRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("Sản phẩm không tồn tại"));
 
@@ -177,7 +189,9 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
+    @Cacheable(value = "productDetail", key = "#id")
     public ProductDTO getProductById(Long id) throws IllegalArgumentException {
+        System.out.println("Fetching product from database by ID: " + id);
         ProductEntity product = productRepository.findByProductIdAndIsDeletedFalse(id);
         if (product == null) {
             throw new IllegalArgumentException("Sản phẩm không tồn tại");

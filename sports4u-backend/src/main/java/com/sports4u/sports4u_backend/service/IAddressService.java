@@ -1,11 +1,9 @@
 package com.sports4u.sports4u_backend.service;
 
-import com.sports4u.sports4u_backend.dto.addressdto.ProvinceResponseDTO;
-import com.sports4u.sports4u_backend.dto.addressdto.WardResponseDTO;
-
-import java.util.List;
+import com.sports4u.sports4u_backend.dto.addressdto.ProvinceListResponse;
+import com.sports4u.sports4u_backend.dto.addressdto.WardListResponse;
 
 public interface IAddressService {
-    List<ProvinceResponseDTO> getAllProvinces();
-    List<WardResponseDTO> getWardsByProvince(String provinceCode) throws IllegalArgumentException;
+    ProvinceListResponse getAllProvinces();
+    WardListResponse getWardsByProvince(String provinceCode) throws IllegalArgumentException;
 }

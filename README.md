@@ -11,9 +11,9 @@
 ### Điểm nổi bật
 - **Kiến trúc Microservices-ready**: Tách biệt FE/BE, dễ scale
 - **Message Queue**: Xử lý email bất đồng bộ với RabbitMQ + Dead Letter Queue
-- **Caching**: Redis cho rate limiting và session management
+- **Redis Caching**: Cache dữ liệu với TTL, rate limiting login, account lock
+- **Payment Gateway**: Tích hợp VNPay Sandbox cho thanh toán online
 - **Cloud Storage**: Upload ảnh lên Cloudinary
-- **AI Integration**: Tích hợp Gemini AI qua Spring AI
 
 ## Kiến trúc hệ thống
 
@@ -23,18 +23,20 @@ Sports4U/
 │   ├── src/main/java/
 │   │   └── com/sports4u/sports4u_backend/
 │   │       ├── Sports4uBackendApplication.java  # Main class (@EnableScheduling)
-│   │       ├── configuration/     # Cấu hình Security, CORS, RabbitMQ, Cloudinary
+│   │       ├── configuration/     # Cấu hình Security, CORS, RabbitMQ, Cloudinary, Redis, VNPay
 │   │       │   ├── CloudinaryConfig.java        # Cloud image storage
 │   │       │   ├── CorsConfig.java              # CORS policy
 │   │       │   ├── MapperConfiguration.java     # ModelMapper
 │   │       │   ├── RabbitMQConfig.java          # Message queue + DLQ
+│   │       │   ├── RedisCacheConfig.java        # Redis cache manager + TTL config
 │   │       │   ├── SecurityConfig.java          # Auth provider, BCrypt
+│   │       │   ├── VNPayConfig.java             # VNPay payment gateway config
 │   │       │   └── WebSecurityConfig.java       # Filter chain, endpoints
 │   │       ├── controller/        # REST Controllers
 │   │       │   ├── AdminController.java         # Admin APIs
 │   │       │   ├── GuestController.java         # Public APIs
 │   │       │   ├── UserController.java          # User APIs
-│   │       │   └── UserOrderController.java     # Order APIs
+│   │       │   └── UserOrderController.java     # Order + Payment APIs
 │   │       ├── converter/         # Entity <-> DTO converters
 │   │       ├── dto/               # Data Transfer Objects
 │   │       │   ├── addressdto/
@@ -51,14 +53,15 @@ Sports4U/
 │   │       ├── repository/        # Spring Data JPA Repositories
 │   │       ├── service/           # Business Logic Services
 │   │       │   ├── impl/          # Service implementations
+│   │       │   │   └── PaymentServiceImpl.java  # VNPay payment processing
 │   │       │   ├── RabbitMQService/
 │   │       │   │   ├── EmailProducerService.java    # Gửi message vào queue
 │   │       │   │   ├── EmailConsumerService.java    # Xử lý gửi email
 │   │       │   │   ├── EmailDLQConsumerService.java # Xử lý email thất bại
 │   │       │   │   └── OtpCleanupService.java       # Scheduled task xóa OTP hết hạn
 │   │       │   └── Redis/
-│   │       │       ├── RateLimitLoginService.java   # Rate limiting
-│   │       │       └── AccountLockService.java      # Khóa tài khoản
+│   │       │       ├── RateLimitLoginService.java   # Rate limiting login
+│   │       │       └── AccountLockService.java      # Khóa tài khoản tạm thời
 │   │       └── utils/
 │   │           ├── JwtTokenUtil.java    # JWT generation & validation
 │   │           ├── PageResponse.java    # Pagination wrapper
@@ -141,6 +144,116 @@ Sports4U/
 - **Account Lock**: Tự động khóa tài khoản sau 4 lần đăng nhập sai trong 15 phút
 - **OTP Verification**: Xác thực OTP qua email khi reset mật khẩu
 - **CORS Configuration**: Kiểm soát cross-origin requests
+
+## Redis Caching
+
+Hệ thống sử dụng **Redis** để caching dữ liệu, cải thiện hiệu suất và giảm tải cho database.
+
+### Cấu hình Cache
+Các cache được cấu hình với thời gian sống (TTL) khác nhau tùy theo đặc tính dữ liệu:
+
+| Cache Name | TTL | Mô tả |
+|------------|-----|-------|
+| `productDetail` | 30 phút | Cache chi tiết sản phẩm |
+| `productList` | 30 phút | Cache danh sách sản phẩm |
+| `categoryList` | 30 phút | Cache danh sách danh mục |
+| `dashboardSummary` | 10 phút | Cache tổng quan dashboard |
+| `revenueByMonth` | 10 phút | Cache doanh thu theo tháng |
+| `productByCategory` | 10 phút | Cache số lượng sản phẩm theo danh mục |
+| `ordersLast7Days` | 10 phút | Cache đơn hàng 7 ngày gần nhất |
+| `provinces` | 24 giờ | Cache danh sách tỉnh/thành phố |
+| `wards` | 24 giờ | Cache danh sách phường/xã |
+
+### Cache Configuration (RedisCacheConfig.java)
+```java
+@Configuration
+public class RedisCacheConfig {
+    @Bean
+    public RedisCacheManager cacheManager(RedisConnectionFactory factory) {
+        // Các cấu hình TTL cho từng loại cache
+        // Product & category: 30 phút
+        // Dashboard: 10 phút
+        // Address: 24 giờ
+    }
+}
+```
+
+### Rate Limiting & Account Lock
+Redis cũng được sử dụng cho:
+- **RateLimitLoginService**: Đếm số lần đăng nhập sai trong khoảng thời gian
+- **AccountLockService**: Khóa tài khoản tạm thời khi đăng nhập sai quá nhiều lần
+
+## Thanh toán VNPay (Sandbox)
+
+Hệ thống tích hợp **VNPay** - cổng thanh toán trực tuyến phổ biến tại Việt Nam. Hiện tại đang sử dụng môi trường **Sandbox** để test.
+
+### Cấu hình VNPay
+```properties
+# application.properties
+vnpay.url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+vnpay.tmn-code=YOUR_TMN_CODE
+vnpay.hash-secret=YOUR_HASH_SECRET
+vnpay.return-url=http://localhost:8080/api/user/order/payment/vnpay-return
+vnpay.version=2.1.0
+```
+
+### Luồng thanh toán VNPay
+
+```
+┌─────────────┐     1. Tạo URL thanh toán     ┌─────────────┐
+│   Client    │ ────────────────────────────▶ │   Backend   │
+│  (Frontend) │                               │ (Spring Boot)│
+└─────────────┘                               └─────────────┘
+       │                                             │
+       │     2. Redirect đến VNPay Gateway          │
+       ▼                                             │
+┌─────────────┐                                      │
+│   VNPay     │                                      │
+│  Gateway    │                                      │
+│  (Sandbox)  │                                      │
+└─────────────┘                                      │
+       │                                             │
+       │     3. Callback vnpay-return               │
+       └────────────────────────────────────────────▶│
+                                                     │
+       │     4. Verify signature & update order     │
+       │◀────────────────────────────────────────────│
+       ▼
+┌─────────────┐
+│  Hiển thị   │
+│  kết quả    │
+└─────────────┘
+```
+
+### API Endpoints VNPay
+```
+GET /api/user/order/payment/vnpay/{orderId}    # Tạo URL thanh toán VNPay
+GET /api/user/order/payment/vnpay-return       # Callback từ VNPay (public)
+```
+
+### VNPay Response Codes
+| Code | Mô tả |
+|------|-------|
+| `00` | Giao dịch thành công |
+| `07` | Trừ tiền thành công nhưng giao dịch bị nghi ngờ |
+| `09` | Thẻ/Tài khoản chưa đăng ký InternetBanking |
+| `10` | Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần |
+| `11` | Đã hết hạn chờ thanh toán (15 phút) |
+| `12` | Thẻ/Tài khoản bị khóa |
+| `13` | Nhập sai mật khẩu OTP |
+| `24` | Khách hàng hủy giao dịch |
+| `51` | Tài khoản không đủ số dư |
+| `65` | Vượt quá hạn mức giao dịch trong ngày |
+| `75` | Ngân hàng thanh toán đang bảo trì |
+| `79` | Nhập sai mật khẩu thanh toán quá số lần quy định |
+| `99` | Lỗi không xác định |
+
+### Test Cards (Sandbox)
+Sử dụng các thông tin test sau khi thanh toán trên sandbox:
+
+| Ngân hàng | Số thẻ | Tên chủ thẻ | Ngày phát hành | OTP |
+|-----------|--------|-------------|----------------|-----|
+| NCB | 9704198526191432198 | NGUYEN VAN A | 07/15 | 123456 |
 
 ## API Endpoints
 

@@ -20,6 +20,7 @@ public class CategoryEntity {
     @Column(name = "name", nullable = false, length = 100)
     private String categoryName;
 
+    @Builder.Default
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
 

@@ -1,5 +1,6 @@
 package com.sports4u.sports4u_backend.repository;
 
+import com.sports4u.sports4u_backend.dto.admindto.RevenueByMonthDTO;
 import com.sports4u.sports4u_backend.entity.OrderEntity;
 import com.sports4u.sports4u_backend.enums.OrderStatus;
 import org.springframework.data.domain.Page;
@@ -17,15 +18,17 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     Page<OrderEntity> findByStatus(OrderStatus status, Pageable pageable);
 
     @Query("""
-        SELECT EXTRACT(MONTH FROM o.orderDate),
+        SELECT new com.sports4u.sports4u_backend.dto.admindto.RevenueByMonthDTO(
+               CAST(EXTRACT(MONTH FROM o.orderDate) AS int),
                SUM(o.totalAmount)
+        )
         FROM OrderEntity o
         WHERE o.status = com.sports4u.sports4u_backend.enums.OrderStatus.COMPLETED
         AND EXTRACT(YEAR FROM o.orderDate) = :year
         GROUP BY EXTRACT(MONTH FROM o.orderDate)
         ORDER BY EXTRACT(MONTH FROM o.orderDate)
     """)
-    List<Object[]> getRevenueByMonth(int year);
+    List<RevenueByMonthDTO> getRevenueByMonth(int year);
 
     @Query("""
         SELECT CAST(o.orderDate AS date), COUNT(o)

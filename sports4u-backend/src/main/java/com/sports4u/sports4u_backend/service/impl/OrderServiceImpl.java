@@ -9,6 +9,7 @@ import com.sports4u.sports4u_backend.repository.*;
 import com.sports4u.sports4u_backend.service.IOrderService;
 import com.sports4u.sports4u_backend.utils.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -82,8 +83,10 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Transactional
+    @CacheEvict(value = {"productDetail", "productList"}, allEntries = true)
     @Override
     public OrderResponseDTO createOrderFromCart(String email, CreateOrderRequestDTO request) {
+        System.out.println("Creating order from cart and clearing product cache");
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
@@ -177,7 +180,9 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
+    @CacheEvict(value = {"productDetail", "productList"}, allEntries = true)
     public OrderResponseDTO createOrderFromProduct(String email, BuyNowRequestDTO request) {
+        System.out.println("Creating order from product and clearing product cache");
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
@@ -219,6 +224,10 @@ public class OrderServiceImpl implements IOrderService {
         orderDetail.setSubtotal(product.getPrice().multiply(BigDecimal.valueOf(request.getQuantity())));
         orderDetail.setCreatedAt(LocalDateTime.now());
         orderDetailRepository.save(orderDetail);
+
+        // Giảm stock quantity
+        product.setStockQuantity(product.getStockQuantity() - request.getQuantity());
+        productRepository.save(product);
 
         // Cập nhật tổng tiền của order
         order.setTotalAmount(orderDetail.getSubtotal());
@@ -360,8 +369,9 @@ public class OrderServiceImpl implements IOrderService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"dashboardSummary", "ordersLast7Days"}, allEntries = true)
     public void cancelOrder(Long orderId, String email) {
-
+        System.out.println("Cancelling order and clearing dashboard cache");
         Long userId = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("User không tồn tại"))
                 .getUserId();

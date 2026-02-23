@@ -1,12 +1,13 @@
 package com.sports4u.sports4u_backend.utils;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.util.List;
 
-@Getter
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PageResponse<T> {
 
     private List<T> content;
