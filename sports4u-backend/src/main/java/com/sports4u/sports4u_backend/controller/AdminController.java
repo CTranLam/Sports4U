@@ -69,6 +69,15 @@ public class AdminController {
         ));
     }
 
+    @PutMapping("/account/{id}/unlock")
+    public ResponseEntity<?> unlockAccount(@PathVariable Long id) {
+        userService.unlockAccount(id);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Đã mở khóa tài khoản thành công"
+        ));
+    }
+
     @GetMapping("/accounts")
     public ResponseEntity<ResponseDTO<PageResponse<UserResponseDTO>>> getAccounts(
             @RequestParam(required = false) Long status,

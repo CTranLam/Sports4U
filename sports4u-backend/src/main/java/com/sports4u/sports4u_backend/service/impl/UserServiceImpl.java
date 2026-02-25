@@ -298,6 +298,15 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    public void unlockAccount(Long userId) throws IllegalArgumentException {
+        UserEntity userEntity = userRepository.findByUserIdAndStatus(userId, 1L)
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại hoặc đã bị khóa"));
+
+        userEntity.setStatus(1L);
+        userRepository.save(userEntity);
+    }
+
+    @Override
     public PageResponse<UserResponseDTO> getAccounts(Long status, Role role, int page, int size) throws NoSuchElementException {
         Pageable pageable = PageRequest.of(
                 page - 1,
