@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initLogout();
     initCart();
     initAuthGuard();
-    initHeaderScrollEffect();
 });
 
 function initAuthUI() {
@@ -55,14 +54,42 @@ function initLogout(){
     });
 }
 
-function initCart() {
+async function initCart() {
     // Lấy span hiển thị số lượng trong giỏ hàng
     const cartBadge = document.querySelector(".bi-cart + span");
 
     if (!cartBadge) return;
 
-    let cartCount = localStorage.getItem("cartCount") || 2;
-    cartBadge.innerText = cartCount;
+    const accessToken = localStorage.getItem("accessToken");
+
+    // Nếu chưa đăng nhập, hiển thị 0
+    if (!accessToken) {
+        cartBadge.innerText = 0;
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:8080/api/user/cart/count", {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${accessToken}`,
+                "Content-Type": "application/json"
+            }
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+            const count = result.data || 0;
+            cartBadge.innerText = count;
+        } 
+        else {
+            console.error(result.message);
+            cartBadge.innerText = 0;
+        }
+    } catch (error) {
+        console.error(error);
+        cartBadge.innerText = 0;
+    }
 }
 
 function initAuthGuard() {

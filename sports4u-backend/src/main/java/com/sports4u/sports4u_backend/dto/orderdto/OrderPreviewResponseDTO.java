@@ -18,5 +18,7 @@ public class OrderPreviewResponseDTO {
     private Long quantity;
     private BigDecimal unitPrice;
     private BigDecimal subtotal;
+    private String fullName;
+    private String phone;
     private String fullAddress;
 }

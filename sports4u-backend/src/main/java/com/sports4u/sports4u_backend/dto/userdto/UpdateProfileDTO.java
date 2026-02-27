@@ -18,14 +18,14 @@ public class UpdateProfileDTO {
     private String phone;
 
     @NotNull(message = "Province is required")
-    private Long provinceId;
+    private Long provinceCode;
 
     @NotNull(message = "Ward is required")
-    private Long wardId;
+    private Long wardCode;
 
     @NotBlank(message = "Address detail is required")
     @Size(max = 255)
-    private String addressDetail;
+    private String detailAddress;
 
-    private String newPassword;
+    private String password;
 }

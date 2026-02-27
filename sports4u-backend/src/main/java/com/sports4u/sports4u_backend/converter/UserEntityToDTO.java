@@ -24,7 +24,7 @@ public class UserEntityToDTO {
         }
 
         if (userEntity.getProvince() != null) {
-            userResponseDTO.setPrivinceName(userEntity.getProvince().getName());
+            userResponseDTO.setProvinceName(userEntity.getProvince().getName());
         }
 
         if (userEntity.getWard() != null) {

@@ -1,109 +1,115 @@
-const params = new URLSearchParams(window.location.search);
-const productId = params.get("id");
+document.addEventListener("DOMContentLoaded", async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
 
-const products = {
-    1: {
-        id: 1,
-        name: "ACEPRO ELITE PADDLE",
-        price: 249,
-        image: "../../assets/products/paddle-1.jpg",
-        desc: "Gậy pickleball cao cấp"
-    },
-    2: {
-        id: 2,
-        name: "VELOCITY CARBON",
-        price: 249,
-        image: "../../assets/products/paddle-2.jpg",
-        desc: "Carbon nhẹ, kiểm soát tốt"
-    },
-    3: {
-        id: 3,
-        name: "TITAN PRO",
-        price: 249,
-        image: "../../assets/products/paddle-3.jpg",
-        desc: "Carbon nhẹ, kiểm soát tốt"
-    },
-    4: {
-        id: 4,
-        name: "RAPTOR SERIES",
-        price: 249,
-        image: "../../assets/products/paddle-4.jpg",
-        desc: "Carbon nhẹ, kiểm soát tốt"
+    if (!productId) {
+        console.error("Không tìm thấy productId");
+        return;
     }
-};
 
-const product = products[productId];
+    await loadProductDetail(productId);
 
-if (!product) {
-    alert("Sản phẩm không tồn tại");
-    window.location.href = "../index.html";
+    // Quantity buttons
+    const quantityInput = document.getElementById("quantityInput");
+    document.getElementById("decreaseBtn").addEventListener("click", () => {
+        const val = parseInt(quantityInput.value);
+        if (val > 1) quantityInput.value = val - 1;
+    });
+    document.getElementById("increaseBtn").addEventListener("click", () => {
+        const val = parseInt(quantityInput.value);
+        if (val < 10) quantityInput.value = val + 1;
+    });
+});
+
+async function loadProductDetail(productId) {
+    try {
+        const response = await fetch(`http://localhost:8080/api/products/${productId}`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        if (!response.ok) {
+            console.error("Lỗi khi lấy thông tin sản phẩm");
+            return;
+        }
+
+        const result = await response.json();
+        const product = result.data;
+
+        // Render thông tin sản phẩm
+        document.getElementById("productImage").src = product.imageUrl;
+        document.getElementById("productImage").alt = product.productName;
+        document.getElementById("productName").textContent = product.productName;
+        document.getElementById("productStock").textContent = product.inStock ? product.quantity : 0;
+        document.getElementById("productPrice").textContent =
+            `${new Intl.NumberFormat('vi-VN').format(product.price || 0)} VND`;
+        document.getElementById("productDesc").textContent =
+            `Xuất xứ: ${product.origin} — ${product.advantages}`;
+
+        const stockEl = document.getElementById("productStock");
+        if (!product.inStock) {
+            stockEl.closest("span.text-success").className = "text-danger fw-semibold";
+            stockEl.parentElement.innerHTML = `<span class="text-danger fw-semibold">Hết hàng</span>`;
+            document.getElementById("buyNowBtn").disabled = true;
+            document.getElementById("addToCartBtn").disabled = true;
+        }
+
+        // Gắn sự kiện mua hàng
+        document.getElementById("addToCartBtn").addEventListener("click", () => {
+            const quantity = parseInt(document.getElementById("quantityInput").value);
+            addToCart(product, quantity);
+        });
+
+        document.getElementById("buyNowBtn").addEventListener("click", () => {
+            const quantity = parseInt(document.getElementById("quantityInput").value);
+
+            // Lưu tạm sản phẩm mua ngay vào sessionStorage (không ảnh hưởng giỏ hàng)
+            const buyNowItem = {
+                productId: product.productId,
+                productName: product.productName,
+                price: product.price,
+                imageUrl: product.imageUrl,
+                quantity: quantity
+            };
+            sessionStorage.setItem("buyNowItem", JSON.stringify(buyNowItem));
+            window.location.href = "../../pages/delivery.html";
+        });
+
+    } catch (error) {
+        console.error("Lỗi khi load chi tiết sản phẩm:", error);
+    }
 }
 
-document.getElementById("productName").innerText = product.name;
-document.getElementById("productPrice").innerText = product.price;
-document.getElementById("productImage").src = product.image;
-document.getElementById("productDesc").innerText = product.desc;
-
-const quantityInput = document.getElementById("quantityInput");
-const increaseBtn = document.getElementById("increaseBtn");
-const decreaseBtn = document.getElementById("decreaseBtn");
-const addToCartBtn = document.getElementById("addToCartBtn");
-const buyNowBtn = document.getElementById("buyNowBtn");
-
-const MAX_QTY = 10;
-
-increaseBtn.addEventListener("click", () => {
-    let qty = Number(quantityInput.value);
-    if (qty < MAX_QTY) quantityInput.value = qty + 1;
-});
-
-decreaseBtn.addEventListener("click", () => {
-    let qty = Number(quantityInput.value);
-    if (qty > 1) quantityInput.value = qty - 1;
-});
-
-quantityInput.addEventListener("change", () => {
-    let qty = Number(quantityInput.value);
-    if (isNaN(qty) || qty < 1) quantityInput.value = 1;
-    if (qty > MAX_QTY) quantityInput.value = MAX_QTY;
-});
-
-addToCartBtn.addEventListener("click", () => {
-    const quantity = Number(quantityInput.value);
-
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-    const existingItem = cart.find(item => item.productId === product.id);
-
-    if (existingItem) {
-        existingItem.quantity += quantity;
-    } else {
-        cart.push({
-            productId: product.id,
-            name: product.name,
-            price: product.price,
-            image: product.image,
-            quantity
-        });
+async function addToCart(product, quantity) {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+        alert("Vui lòng đăng nhập để thêm vào giỏ hàng");
+        window.location.href = "./login.html";
+        return;
     }
 
-    localStorage.setItem("cart", JSON.stringify(cart));
+    try {
+        const response = await fetch("http://localhost:8080/api/user/cart/items", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                productId: product.productId,
+                quantity: quantity
+            })
+        });
 
-    alert("Đã thêm sản phẩm vào giỏ hàng");
-});
+        const result = await response.json();
 
-buyNowBtn.addEventListener("click", () => {
-    const quantity = Number(quantityInput.value);
-
-    const buyNowData = {
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-        quantity
-    };
-
-    sessionStorage.setItem("buyNow", JSON.stringify(buyNowData));
-
-    window.location.href = "../../pages/delivery.html";
-});
+        if (response.ok) {
+            alert(result.message || "Đã thêm vào giỏ hàng");
+        } else {
+            alert(result.message || "Không thể thêm vào giỏ hàng");
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Không thể kết nối server");
+    }
+}

@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -23,10 +24,13 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
 
     //v1 check token de xac thuc
     @Override
@@ -65,22 +69,24 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     private boolean isBypassToken(HttpServletRequest request) {
-        // Bypass VNPay return URL (không yêu cầu JWT vì redirect từ VNPay)
         if (request.getServletPath().contains("/payment/vnpay-return")) {
             return true;
         }
 
         final List<Pair<String, String>> bypassTokens = Arrays.asList(
                 Pair.of("/api/user/register", "POST"),
-                Pair.of("/api/user/login","POST"),
+                Pair.of("/api/user/login", "POST"),
                 Pair.of("/api/user/forgot-password", "POST"),
                 Pair.of("/api/user/verify-otp", "POST"),
                 Pair.of("/api/user/reset-password", "POST"),
-                Pair.of("/api/user/resend-otp", "POST")
+                Pair.of("/api/user/resend-otp", "POST"),
+                Pair.of("/api/categories/**", "GET"),
+                Pair.of("/api/products/**", "GET")
         );
-        for(Pair<String, String> bypassToken: bypassTokens) {
-            if (request.getServletPath().contains(bypassToken.getFirst()) &&
-                    request.getMethod().equals(bypassToken.getSecond())) {
+
+        for (Pair<String, String> bypassToken : bypassTokens) {
+            if (pathMatcher.match(bypassToken.getFirst(), request.getServletPath())
+                    && request.getMethod().equals(bypassToken.getSecond())) {
                 return true;
             }
         }

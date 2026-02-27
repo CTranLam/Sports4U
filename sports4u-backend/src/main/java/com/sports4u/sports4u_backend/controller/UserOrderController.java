@@ -10,11 +10,13 @@ import com.sports4u.sports4u_backend.service.IPaymentService;
 import com.sports4u.sports4u_backend.service.IUserService;
 import com.sports4u.sports4u_backend.utils.ResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
@@ -110,25 +112,18 @@ public class UserOrderController {
     }
 
     @GetMapping("/payment/vnpay-return")
-    public ResponseEntity<ResponseDTO<String>> vnpayReturn(@RequestParam Map<String, String> params) {
+    public void vnpayReturn(@RequestParam Map<String, String> params, HttpServletResponse httpResponse) throws IOException {
         try {
             paymentService.handleVnPayReturn(params);
-
             String responseCode = params.get("vnp_ResponseCode");
-            String message;
 
             if ("00".equals(responseCode)) {
-                message = "Thanh toán thành công! Đơn hàng của bạn đã được xác nhận.";
+                httpResponse.sendRedirect("http://localhost:5500/index.html?success=true");
             } else {
-                message = "Thanh toán thất bại. Mã lỗi: " + responseCode;
+                httpResponse.sendRedirect("http://localhost:5500/pages/checkout.html?error=" + responseCode);
             }
-
-            return ResponseEntity.ok(
-                    new ResponseDTO<>(message, responseCode)
-            );
         } catch (Exception ex) {
-            return ResponseEntity.badRequest()
-                    .body(new ResponseDTO<>(ex.getMessage(), null));
+            httpResponse.sendRedirect("http://localhost:5500/pages/checkout.html?error=exception");
         }
     }
 

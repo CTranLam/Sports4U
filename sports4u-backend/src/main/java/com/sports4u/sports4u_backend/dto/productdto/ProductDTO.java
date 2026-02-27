@@ -16,12 +16,14 @@ public class ProductDTO {
     private String productName;
     private BigDecimal price;
     private String imageUrl;
+    private String description;
 
     private Long categoryId;
     private String categoryName;
 
     private String origin;
     private String advantages;
+    private Long quantity;
 
     private Boolean inStock;
 }

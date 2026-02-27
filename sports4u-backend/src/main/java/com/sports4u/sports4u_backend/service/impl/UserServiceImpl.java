@@ -211,20 +211,20 @@ public class UserServiceImpl implements IUserService {
         if (request.getPhone() == null || request.getPhone().isBlank()) {
             throw new IllegalArgumentException("Số điện thoại không được để trống");
         }
-        if (request.getProvinceId() == null) {
+        if (request.getProvinceCode() == null) {
             throw new IllegalArgumentException("Tỉnh/thành phố không được để trống");
         }
-        if (request.getWardId() == null) {
+        if (request.getWardCode() == null) {
             throw new IllegalArgumentException("Phường/xã không được để trống");
         }
 
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với email đã cung cấp"));
 
-        ProvinceEntity province = provinceRepository.findById(request.getProvinceId())
+        ProvinceEntity province = provinceRepository.findById(request.getProvinceCode())
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tỉnh/thành phố"));
 
-        WardEntity ward = wardRepository.findById(request.getWardId())
+        WardEntity ward = wardRepository.findById(request.getWardCode())
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phường/xã"));
 
         if (!ward.getProvince().getCode().equals(province.getCode())) {
@@ -233,12 +233,12 @@ public class UserServiceImpl implements IUserService {
 
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
-        user.setDetailAddress(request.getAddressDetail());
+        user.setDetailAddress(request.getDetailAddress());
         user.setProvince(province);
         user.setWard(ward);
 
-        if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
-            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
         userRepository.save(user);
@@ -341,8 +341,17 @@ public class UserServiceImpl implements IUserService {
         ProductEntity productEntity = productRepository.findById(cartItemDTO.getProductId())
                 .orElseThrow(() -> new NoSuchElementException("Sản phẩm không tồn tại"));
 
-        CartItemEntity cartItemEntity = ConvertCartItem.convertToCartItemEntity(cartItemDTO, userEntity, productEntity);
-        cartItemRepository.save(cartItemEntity);
+        // Check xem item đã tồn tại trong giỏ chưa
+        CartItemEntity cartItemEntity = cartItemRepository.findByUser_UserIdAndProduct_ProductId(userEntity.getUserId(), productEntity.getProductId());
+
+        if(cartItemEntity != null) {
+            cartItemEntity.setQuantity(cartItemEntity.getQuantity() + cartItemDTO.getQuantity());
+            cartItemRepository.save(cartItemEntity);
+        }
+        else{
+            CartItemEntity newCartItem = ConvertCartItem.convertToCartItemEntity(cartItemDTO, userEntity, productEntity);
+            cartItemRepository.save(newCartItem);
+        }
     }
 
     @Transactional
@@ -369,6 +378,8 @@ public class UserServiceImpl implements IUserService {
                 .map(cartItemEntity -> {
                     CartItemResponseDTO cartItemResponseDTO = new CartItemResponseDTO();
                     cartItemResponseDTO.setProductId(cartItemEntity.getProduct().getProductId());
+                    cartItemResponseDTO.setProductName(cartItemEntity.getProduct().getProductName());
+                    cartItemResponseDTO.setImageUrl(cartItemEntity.getProduct().getImageUrl());
                     cartItemResponseDTO.setQuantity(cartItemEntity.getQuantity());
                     cartItemResponseDTO.setPrice(cartItemEntity.getPriceAtAdded());
                     return cartItemResponseDTO;

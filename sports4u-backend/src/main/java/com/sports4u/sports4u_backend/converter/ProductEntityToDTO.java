@@ -19,6 +19,7 @@ public class ProductEntityToDTO {
                 .categoryName(product.getCategoryEntity().getCategoryName())
                 .origin(product.getOrigin())
                 .advantages(product.getAdvantages())
+                .quantity(product.getStockQuantity())
                 .inStock(product.getStockQuantity() > 0)
                 .build();
     }

@@ -24,7 +24,12 @@ document.getElementById("loginForm").addEventListener("submit", async function (
             localStorage.setItem("isLoggedIn", "true");
 
             alert(result.message);
-            window.location.href = "../../index.html";
+            if(result.data.role === "ROLE_ADMIN") {
+                window.location.href = "../../pages/admin/dashboard.html";
+            } 
+            else {
+                window.location.href = "../../index.html";
+            }
         } else {
             alert(result.message || "Sai email hoặc mật khẩu");
         }

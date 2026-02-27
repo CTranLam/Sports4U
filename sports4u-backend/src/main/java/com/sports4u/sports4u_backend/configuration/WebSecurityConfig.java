@@ -33,7 +33,7 @@ public class WebSecurityConfig {
                                     "/api/user/verify-otp","/api/user/reset-password", "/api/user/resend-otp").permitAll()
                             // Cho phép VNPay callback không cần authentication
                             .requestMatchers("/api/user/order/payment/vnpay-return").permitAll()
-                            .requestMatchers("GET","/api/categories/**").permitAll()
+                            .requestMatchers("GET","/api/categories","/api/categories/**").permitAll()
                             .requestMatchers("GET","/api/products/**").permitAll()
                             .requestMatchers("/api/admin/**").hasRole("ADMIN")
                             .requestMatchers("/api/user/**").hasRole("USER")

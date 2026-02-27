@@ -40,7 +40,7 @@ public class OrderServiceImpl implements IOrderService {
             throw new RuntimeException("Danh sách sản phẩm không được để trống");
         }
 
-        List<CartItemEntity> cartItems = cartItemRepository.findByCartItemIdInAndUser_UserId(
+        List<CartItemEntity> cartItems = cartItemRepository.findByProduct_ProductIdInAndUser_UserId(
                 itemIds.getItemIds(),
                 user.getUserId()
         );
@@ -76,6 +76,8 @@ public class OrderServiceImpl implements IOrderService {
                             .quantity(cartItem.getQuantity())
                             .unitPrice(product.getPrice())
                             .subtotal(subtotal)
+                            .fullName(user.getFullName())
+                            .phone(user.getPhone())
                             .fullAddress(fullAddress)
                             .build();
                 })
@@ -91,7 +93,7 @@ public class OrderServiceImpl implements IOrderService {
                 .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
 
 
-        List<CartItemEntity> cartItems = cartItemRepository.findByCartItemIdInAndUser_UserId(request.getCartItemIds(), user.getUserId());
+        List<CartItemEntity> cartItems = cartItemRepository.findByProduct_ProductIdInAndUser_UserId(request.getCartItemIds(), user.getUserId());
 
         if (cartItems.isEmpty()) {
             throw new RuntimeException("Không có sản phẩm nào trong giỏ hàng để tạo đơn hàng");
@@ -174,6 +176,8 @@ public class OrderServiceImpl implements IOrderService {
             preview.setUnitPrice(product.getPrice());
             preview.setQuantity(request.getQuantity());
             preview.setSubtotal(product.getPrice().multiply(BigDecimal.valueOf(request.getQuantity())));
+            preview.setFullName(user.getFullName());
+            preview.setPhone(user.getPhone());
             preview.setFullAddress(user.getDetailAddress() + ", " + user.getWard().getName() + ", " + user.getProvince().getName());
 
             return preview;
