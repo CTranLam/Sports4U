@@ -23,6 +23,7 @@ public class EmailConsumerService {
     public void handleEmailMessage(EmailMessageDTO dto) {
 
         try {
+            System.out.println("Processing email for: " + dto.getTo() + ", OTP ID: " + dto.getOtpId());
 
             emailService.sendEmail(
                     dto.getTo(),
@@ -39,7 +40,8 @@ public class EmailConsumerService {
             System.out.println("Sent email to " + dto.getTo());
 
         } catch (Exception e) {
-            System.out.println("Error sending email to " + dto.getTo());
+            System.out.println("Error sending email to " + dto.getTo() + ": " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Email sending failed", e);
         }
     }

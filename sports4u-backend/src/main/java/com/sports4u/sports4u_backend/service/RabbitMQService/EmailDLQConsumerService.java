@@ -14,10 +14,10 @@ public class EmailDLQConsumerService {
 
     private final PasswordResetOtpRepository passwordResetOtpRepository;
 
-    @RabbitListener(queues = RabbitMQConfig.MAIL_DLQ)
+    @RabbitListener(queues = RabbitMQConfig.MAIL_DLQ, containerFactory = "mailListenerFactory")
     public void handleDLQ(EmailMessageDTO dto) {
         // Set status = fail
-        System.out.println("Handling email dlq received from " + dto.getTo());
+        System.out.println("DLQ: Email failed for " + dto.getTo() + ", OTP ID: " + dto.getOtpId());
         passwordResetOtpRepository.findById(dto.getOtpId())
                 .ifPresent(otp -> {
                     otp.setStatus(OtpStatus.FAILED);

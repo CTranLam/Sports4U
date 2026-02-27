@@ -96,7 +96,7 @@ public class UserController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ResponseDTO<String>> sendOtp(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ResponseDTO<Long>> sendOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
 
         if (email == null || email.isEmpty()) {
@@ -105,9 +105,9 @@ public class UserController {
         }
 
         try {
-            userService.sendOtp(email);
+            Long time = userService.sendOtp(email);
             return ResponseEntity.ok(
-                    new ResponseDTO<>("OTP sẽ được gửi đến email của bạn", null)
+                    new ResponseDTO<>("OTP sẽ được gửi đến email của bạn", time)
             );
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -147,7 +147,7 @@ public class UserController {
     }
 
     @PostMapping("/resend-otp")
-    public ResponseEntity<ResponseDTO<String>> resendOTP(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ResponseDTO<Long>> resendOTP(@RequestBody Map<String, String> request) {
         String email = request.get("email");
 
         if (email == null || email.isEmpty()) {
@@ -156,9 +156,9 @@ public class UserController {
         }
 
         try {
-            userService.sendOtp(email);
+            Long time = userService.sendOtp(email);
             return ResponseEntity.ok(
-                    new ResponseDTO<>("OTP sẽ được gửi đến email của bạn", null)
+                    new ResponseDTO<>("OTP sẽ được gửi đến email của bạn", time)
             );
         }
         catch (NoSuchElementException e) {

@@ -15,7 +15,7 @@ public class OtpCleanupService {
     private final PasswordResetOtpRepository passwordResetOtpRepository;
 
     @Transactional
-    @Scheduled(cron = "0 0/30 * * * ?")
+    @Scheduled(cron = "0 0/15 * * * ?")
     public void deleteExpiredOtps() {
         passwordResetOtpRepository.deleteByExpirationTimeBefore(LocalDateTime.now());
         System.out.println("Expired OTPs cleaned at " + LocalDateTime.now());

@@ -69,7 +69,7 @@ public class RabbitMQConfig {
         return factory;
     }
 
-    @Bean
+    @Bean("mailListenerFactory")
     public SimpleRabbitListenerContainerFactory mailListenerFactory(
             ConnectionFactory connectionFactory,
             RabbitTemplate rabbitTemplate) {
@@ -83,8 +83,8 @@ public class RabbitMQConfig {
 
         factory.setAdviceChain(
                 RetryInterceptorBuilder.stateless()
-                        .maxAttempts(5)
-                        .backOffOptions(2000, 2, 10000)
+                        .maxAttempts(3)
+                        .backOffOptions(1000, 1.5, 3000)
                         .recoverer(new RepublishMessageRecoverer(
                                 rabbitTemplate,
                                 "",

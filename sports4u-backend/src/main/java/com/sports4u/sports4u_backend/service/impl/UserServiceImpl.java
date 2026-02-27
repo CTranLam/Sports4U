@@ -154,7 +154,7 @@ public class UserServiceImpl implements IUserService {
                 }
         );
 
-        return otpEntity.getId();
+        return 3L;
     }
 
     @Transactional
