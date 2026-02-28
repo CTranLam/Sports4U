@@ -301,14 +301,25 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public PageResponse<OrderSummaryDTO> getOrders(String email, int page, int size) {
+    public PageResponse<OrderSummaryDTO> getOrders(String email, String status, int page, int size) {
         Long userId = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("User không tồn tại"))
                 .getUserId();
 
         Pageable pageable = PageRequest.of(page-1, size, Sort.by("orderDate").descending());
 
-        Page<OrderEntity> orders = orderRepository.findByUser_UserId(userId, pageable);
+        Page<OrderEntity> orders;
+        if (status != null && !status.isBlank()) {
+            OrderStatus orderStatus;
+            try {
+                orderStatus = OrderStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Trạng thái không hợp lệ: " + status);
+            }
+            orders = orderRepository.findByUser_UserIdAndStatus(userId, orderStatus, pageable);
+        } else {
+            orders = orderRepository.findByUser_UserId(userId, pageable);
+        }
 
         return PageResponse.<OrderSummaryDTO>builder()
                 .content(
@@ -333,11 +344,10 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     public OrderDetailDTO getOrderDetail(Long orderId, String email) {
 
-        Long userId = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NoSuchElementException("User không tồn tại"))
-                .getUserId();
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NoSuchElementException("User không tồn tại"));
 
-        OrderEntity order = orderRepository.findByOrderIdAndUser_UserId(orderId, userId)
+        OrderEntity order = orderRepository.findByOrderIdAndUser_UserId(orderId, user.getUserId())
                 .orElseThrow(() -> new NoSuchElementException("Không tìm thấy đơn hàng"));
 
         List<OrderDetailEntity> orderDetails = orderDetailRepository.findByOrder_OrderId(orderId);
@@ -358,13 +368,14 @@ public class OrderServiceImpl implements IOrderService {
                             .quantity(detail.getQuantity().intValue())
                             .subtotal(detail.getSubtotal())
                             .build();
-                })
-                .toList();
+                }).toList();
 
         return OrderDetailDTO.builder()
                 .orderId(order.getOrderId())
                 .status(order.getStatus().name())
                 .orderDate(order.getOrderDate())
+                .receiverName(user.getFullName())
+                .receiverPhone(user.getPhone())
                 .fullAddress(order.getFullAddress())
                 .totalAmount(order.getTotalAmount())
                 .items(items)

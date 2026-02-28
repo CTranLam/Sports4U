@@ -14,6 +14,8 @@ public class OrderDetailDTO {
     private Long orderId;
     private String status;
     private LocalDateTime orderDate;
+    String receiverName;
+    String receiverPhone;
     private String fullAddress;
     private BigDecimal totalAmount;
     private List<OrderItemDetailDTO> items;

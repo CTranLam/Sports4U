@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (error) {
         alert("Thanh toán thất bại. Vui lòng thử lại.");
         history.replaceState({}, '', window.location.pathname);
-    }else if(urlParams.get("succcess") === "true"){
+    }else if(urlParams.get("success") === "true"){
         alert("Thanh toán VNPay thành công! Đơn hàng của bạn đã được xác nhận.");
         history.replaceState({}, '', window.location.pathname);
     }

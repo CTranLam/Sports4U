@@ -39,6 +39,8 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     """)
     List<Object[]> countOrdersFromDate(LocalDateTime startDate);
 
+    Page<OrderEntity> findByUser_UserIdAndStatus(Long userId, OrderStatus status, Pageable pageable);
+
     Page<OrderEntity> findByUser_UserId(Long userId, Pageable pageable);
 
     Optional<OrderEntity> findByOrderIdAndUser_UserId(Long orderId, Long userId);

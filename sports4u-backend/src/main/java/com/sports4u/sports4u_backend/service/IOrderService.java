@@ -16,7 +16,7 @@ public interface IOrderService {
     OrderResponseDTO createOrderFromProduct(String email, BuyNowRequestDTO request);
     PageResponse<OrderResponseInAdminDTO> getOrdersForAdmin(String status, int page, int size) throws NoSuchElementException;
     void updateOrderStatus(Long orderId, String status) throws NoSuchElementException;
-    PageResponse<OrderSummaryDTO> getOrders(String email, int page, int size);
+    PageResponse<OrderSummaryDTO> getOrders(String email,String status, int page, int size);
     OrderDetailDTO getOrderDetail(Long orderId, String email);
     void cancelOrder(Long orderId, String email);
 }

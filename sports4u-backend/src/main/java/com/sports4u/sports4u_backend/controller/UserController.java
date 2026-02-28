@@ -278,10 +278,11 @@ public class UserController {
     public ResponseEntity<ResponseDTO<?>> getMyOrders(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String status,
             Principal principal) {
 
         return ResponseEntity.ok(
-                new ResponseDTO<>("Lấy danh sách đơn hàng thành công", orderService.getOrders(principal.getName(), page, size))
+                new ResponseDTO<>("Lấy danh sách đơn hàng thành công", orderService.getOrders(principal.getName(),status, page, size))
         );
     }
 
