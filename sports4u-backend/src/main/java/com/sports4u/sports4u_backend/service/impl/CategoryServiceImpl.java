@@ -40,10 +40,18 @@ public class CategoryServiceImpl implements ICategoryService {
 
         List<CategoryDTO> content = categoryPage.getContent()
                 .stream()
-                .map(category -> CategoryDTO.builder()
-                        .categoryId(category.getCategoryId())
-                        .categoryName(category.getCategoryName())
-                        .build())
+                .map(category -> {
+                    long productCount = productRepository
+                            .countByCategoryEntity_CategoryIdAndIsDeletedFalse(
+                                    category.getCategoryId()
+                            );
+
+                    return CategoryDTO.builder()
+                            .categoryId(category.getCategoryId())
+                            .categoryName(category.getCategoryName())
+                            .productCount(productCount)
+                            .build();
+                })
                 .toList();
 
         return PageResponse.<CategoryDTO>builder()
@@ -106,10 +114,13 @@ public class CategoryServiceImpl implements ICategoryService {
         if (categoryId == null || categoryId <= 0) {
             throw new IllegalArgumentException("Danh mục không hợp lệ");
         }
-        CategoryEntity category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy danh mục sản phẩm đã chọn"));
+        CategoryEntity category = categoryRepository.findByCategoryIdAndIsDeletedFalse(categoryId);
 
-        boolean hasProducts = productRepository.existsByCategoryEntity_CategoryId(categoryId);
+        if(category == null) {
+            throw new NotFoundException("Danh mục không tồn tại");
+        }
+
+        boolean hasProducts = productRepository.existsByCategoryEntity_CategoryIdAndIsDeletedFalse(categoryId);
         if (hasProducts) {
             throw new IllegalArgumentException("Không thể xóa danh mục vì còn chứa các sản phẩm");
         }

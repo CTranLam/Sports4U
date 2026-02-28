@@ -282,7 +282,9 @@ public class UserServiceImpl implements IUserService {
                 .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại hoặc đã bị khóa"));
 
         userEntity.setRole(userUpdateDTO.getRole());
-        userEntity.setPassword(passwordEncoder.encode(userUpdateDTO.getNewPassword()));
+        if(userUpdateDTO.getNewPassword() != null && !userUpdateDTO.getNewPassword().isBlank()) {
+            userEntity.setPassword(passwordEncoder.encode(userUpdateDTO.getNewPassword()));
+        }
 
         userRepository.save(userEntity);
     }
@@ -299,8 +301,8 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public void unlockAccount(Long userId) throws IllegalArgumentException {
-        UserEntity userEntity = userRepository.findByUserIdAndStatus(userId, 1L)
-                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại hoặc đã bị khóa"));
+        UserEntity userEntity = userRepository.findByUserIdAndStatus(userId, 0L)
+                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
 
         userEntity.setStatus(1L);
         userRepository.save(userEntity);
@@ -314,9 +316,9 @@ public class UserServiceImpl implements IUserService {
                 Sort.by("userId").descending()
         );
         Page<UserEntity> userEntities = userRepository.findByStatusAndRole(status, role, pageable);
-        if(userEntities.isEmpty()) {
-            throw new NoSuchElementException("Không tìm thấy tài khoản nào với trạng thái và vai trò đã chọn");
-        }
+//        if(userEntities.isEmpty()) {
+//            throw new NoSuchElementException("Không tìm thấy tài khoản nào với trạng thái và vai trò đã chọn");
+//        }
 
         List<UserResponseDTO> userResponseDTOS = userEntities.stream()
                 .map(userEntityToDTO::convertToDTO)

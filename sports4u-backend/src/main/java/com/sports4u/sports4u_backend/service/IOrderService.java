@@ -14,7 +14,7 @@ public interface IOrderService {
     List<OrderPreviewResponseDTO> getCartItemsByIds(String email, CartItemIdsRequestDTO itemIds);
     OrderPreviewResponseDTO previewFromProduct(String email, BuyNowRequestDTO request);
     OrderResponseDTO createOrderFromProduct(String email, BuyNowRequestDTO request);
-    PageResponse<OrderResponseInAdminDTO> getOrdersForAdmin(String status, int page, int size) throws NoSuchElementException;
+    PageResponse<OrderResponseInAdminDTO> getOrdersForAdmin(String status, String paymentStatus, int page, int size) throws NoSuchElementException;
     void updateOrderStatus(Long orderId, String status) throws NoSuchElementException;
     PageResponse<OrderSummaryDTO> getOrders(String email,String status, int page, int size);
     OrderDetailDTO getOrderDetail(Long orderId, String email);

@@ -13,7 +13,7 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
-    Boolean existsByCategoryEntity_CategoryId(Long categoryId);
+    Boolean existsByCategoryEntity_CategoryIdAndIsDeletedFalse(Long categoryId);
     Page<ProductEntity> findByCategoryEntity_CategoryIdAndIsDeletedFalse(Long categoryId, Pageable pageable);
     Long countByCategoryEntity_CategoryIdAndIsDeletedFalse(Long categoryId);
     Boolean existsByProductNameIgnoreCaseAndCategoryEntity_CategoryIdAndIsDeletedFalse(
@@ -26,6 +26,7 @@ public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
         SELECT c.categoryName, COUNT(p)
         FROM ProductEntity p
         JOIN p.categoryEntity c
+        WHERE p.isDeleted = false
         GROUP BY c.categoryName
     """)
     List<Object[]> countProductByCategory();

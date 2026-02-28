@@ -3,6 +3,7 @@ package com.sports4u.sports4u_backend.repository;
 import com.sports4u.sports4u_backend.dto.admindto.RevenueByMonthDTO;
 import com.sports4u.sports4u_backend.entity.OrderEntity;
 import com.sports4u.sports4u_backend.enums.OrderStatus;
+import com.sports4u.sports4u_backend.enums.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,8 +16,6 @@ import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
-    Page<OrderEntity> findByStatus(OrderStatus status, Pageable pageable);
-
     @Query("""
         SELECT new com.sports4u.sports4u_backend.dto.admindto.RevenueByMonthDTO(
                CAST(EXTRACT(MONTH FROM o.orderDate) AS int),
@@ -45,5 +44,10 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     Optional<OrderEntity> findByOrderIdAndUser_UserId(Long orderId, Long userId);
 
+    Page<OrderEntity> findByStatus(OrderStatus status, Pageable pageable);
+
+    Page<OrderEntity> findByPaymentStatus(PaymentStatus paymentStatus, Pageable pageable);
+
+    Page<OrderEntity> findByStatusAndPaymentStatus(OrderStatus status, PaymentStatus paymentStatus, Pageable pageable);
 }
 

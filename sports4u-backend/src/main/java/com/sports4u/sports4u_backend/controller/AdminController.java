@@ -148,6 +148,9 @@ public class AdminController {
             @RequestPart("data") @Valid ProductRequestDTO data,
             @RequestPart("image") MultipartFile imageFile) {
 
+        System.out.println("Data: " + data); // thêm dòng này
+        System.out.println("Image: " + imageFile.getOriginalFilename());
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ResponseDTO<>("Tạo sản phẩm thành công", productService.createProduct(data, imageFile)));
     }
@@ -176,11 +179,12 @@ public class AdminController {
     @GetMapping("orders")
     public ResponseEntity<?> getOrders(
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String paymentStatus,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size){
         try {
             return ResponseEntity.ok(
-                    new ResponseDTO<>("Lấy danh sách đơn hàng thành công", orderService.getOrdersForAdmin(status, page, size))
+                    new ResponseDTO<>("Lấy danh sách đơn hàng thành công", orderService.getOrdersForAdmin(status,paymentStatus, page, size))
             );
 
         }catch (Exception e) {

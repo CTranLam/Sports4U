@@ -1,6 +1,7 @@
 package com.sports4u.sports4u_backend.repository;
 
 import com.sports4u.sports4u_backend.entity.CategoryEntity;
+import com.sports4u.sports4u_backend.exception.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -14,4 +15,5 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity,Long> {
     boolean existsByCategoryNameIgnoreCase(String categoryName);
     Page<CategoryEntity> findAllByIsDeletedFalse(Pageable pageable);
     List<CategoryEntity> findAllByIsDeletedFalse(Sort sort);
+    CategoryEntity findByCategoryIdAndIsDeletedFalse(Long categoryId);
 }

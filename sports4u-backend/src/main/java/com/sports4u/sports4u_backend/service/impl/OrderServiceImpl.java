@@ -241,7 +241,7 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public PageResponse<OrderResponseInAdminDTO> getOrdersForAdmin(String status, int page, int size) {
+    public PageResponse<OrderResponseInAdminDTO> getOrdersForAdmin(String status, String paymentStatus, int page, int size) {
 
         OrderStatus orderStatus = null;
         if (status != null && !status.isBlank()) {
@@ -249,24 +249,48 @@ public class OrderServiceImpl implements IOrderService {
                 orderStatus = OrderStatus.valueOf(status);
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException(
-                        "Trạng thái đơn hàng không hợp lệ. Chỉ chấp nhận: PENDING, CONFIRMED, SHIPPED, COMPLETED, CANCELED"
+                        "Trạng thái đơn hàng không hợp lệ. Chỉ chấp nhận: PENDING, CONFIRMED, SHIPPING, COMPLETED, CANCELED"
+                );
+            }
+        }
+
+        PaymentStatus paymentStatusEnum = null;
+        if (paymentStatus != null && !paymentStatus.isBlank()) {
+            try {
+                paymentStatusEnum = PaymentStatus.valueOf(paymentStatus);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException(
+                        "Trạng thái thanh toán không hợp lệ. Chỉ chấp nhận: UNPAID, PAID"
                 );
             }
         }
 
         Pageable pageable = PageRequest.of(page-1, size, Sort.by("orderDate").descending());
 
-        Page<OrderEntity> orders = (orderStatus != null)
-                ? orderRepository.findByStatus(orderStatus, pageable)
-                : orderRepository.findAll(pageable);
+        Page<OrderEntity> orders;
+
+        if (orderStatus != null && paymentStatusEnum != null) {
+            orders = orderRepository.findByStatusAndPaymentStatus(orderStatus, paymentStatusEnum, pageable);
+        } else if (orderStatus != null) {
+            orders = orderRepository.findByStatus(orderStatus, pageable);
+        } else if (paymentStatusEnum != null) {
+            orders = orderRepository.findByPaymentStatus(paymentStatusEnum, pageable);
+        } else {
+            orders = orderRepository.findAll(pageable);
+        }
+
 
         return PageResponse.<OrderResponseInAdminDTO>builder()
                 .content(
                         orders.getContent().stream()
                                 .map(order -> OrderResponseInAdminDTO.builder()
+
+
                                         .orderId(order.getOrderId())
                                         .userEmail(order.getUser().getEmail())
                                         .status(order.getStatus().name())
+                                        .paymentMethod(order.getPaymentMethod().name())
+                                        .paymentStatus(order.getPaymentStatus().name())
                                         .totalAmount(order.getTotalAmount())
                                         .orderDate(order.getOrderDate())
                                         .fullAddress(order.getFullAddress())

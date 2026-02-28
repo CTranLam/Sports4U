@@ -17,6 +17,8 @@ public class OrderResponseInAdminDTO {
     private Long orderId;
     private String userEmail;
     private String status;
+    private String paymentMethod;
+    private String paymentStatus;
     private BigDecimal totalAmount;
     private LocalDateTime orderDate;
     private String fullAddress;

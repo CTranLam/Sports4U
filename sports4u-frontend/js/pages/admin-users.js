@@ -65,8 +65,8 @@ async function loadUsers(token) {
     }
 }
 
-function renderUsers(users, token) {
-    const tbody = document.querySelector("tbody");
+function renderUsers(users) {  
+    const tbody = document.getElementById("userTableBody");
 
     if (users.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Không có tài khoản nào</td></tr>`;
@@ -96,8 +96,8 @@ function renderUsers(users, token) {
                     Sửa
                 </button>
                 ${user.status === 1
-                    ? `<button class="btn btn-sm btn-outline-danger" onclick="lockAccount(${user.userId}, token)">Khóa</button>`
-                    : `<button class="btn btn-sm btn-outline-success" onclick="unlockAccount(${user.userId}, token)">Mở khóa</button>`
+                    ? `<button class="btn btn-sm btn-outline-danger" onclick="lockAccount(${user.userId})">Khóa</button>`
+                    : `<button class="btn btn-sm btn-outline-success" onclick="unlockAccount(${user.userId})">Mở khóa</button>`
                 }
             </td>
         </tr>
@@ -114,6 +114,12 @@ function openEditModal(userId, email, role) {
 async function updateAccount(token) {
     const userId = document.getElementById("editUserId").value;
     const role = document.getElementById("editRole").value;
+    const newPassword = document.getElementById("editPassword").value;
+
+    const body = { role };
+    if (newPassword.trim()) {
+        body.newPassword = newPassword;
+    }
 
     try {
         const response = await fetch(`http://localhost:8080/api/admin/account/${userId}`, {
@@ -122,12 +128,13 @@ async function updateAccount(token) {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
             },
-            body: JSON.stringify({ role })
+            body: JSON.stringify(body)
         });
 
         const result = await response.json();
         if (result.success) {
             alert("Cập nhật tài khoản thành công");
+            document.getElementById("editPassword").value = "";
             bootstrap.Modal.getInstance(document.getElementById("editUserModal")).hide();
             await loadUsers(token);
         } else {
@@ -169,8 +176,9 @@ async function createAccount(token) {
     }
 }
 
-async function lockAccount(userId, token) {
+async function lockAccount(userId) {
     if (!confirm("Bạn có chắc muốn khóa tài khoản này không?")) return;
+    const token = localStorage.getItem("accessToken"); 
     try {
         const response = await fetch(`http://localhost:8080/api/admin/account/${userId}`, {
             method: "DELETE",
@@ -188,8 +196,9 @@ async function lockAccount(userId, token) {
     }
 }
 
-async function unlockAccount(userId, token) {
+async function unlockAccount(userId) {
     if (!confirm("Bạn có chắc muốn mở khóa tài khoản này không?")) return;
+    const token = localStorage.getItem("accessToken"); 
     try {
         const response = await fetch(`http://localhost:8080/api/admin/account/${userId}/unlock`, {
             method: "PUT",
