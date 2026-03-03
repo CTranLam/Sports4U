@@ -31,7 +31,6 @@ async function apiFetch(path) {
     return json.data;
 }
 
-// ── Summary cards ─────────────────────────────────────────────
 async function loadSummary() {
     try {
         const data = await apiFetch("/dashboard/summary");
@@ -43,7 +42,6 @@ async function loadSummary() {
     }
 }
 
-// ── Revenue by month ──────────────────────────────────────────
 let revenueChart = null;
 async function loadRevenueChart(year) {
     try {
@@ -86,7 +84,6 @@ async function loadRevenueChart(year) {
     }
 }
 
-// ── Product by category ───────────────────────────────────────
 async function loadCategoryChart() {
     try {
         const data = await apiFetch("/dashboard/product-by-category");
@@ -117,7 +114,7 @@ async function loadCategoryChart() {
     }
 }
 
-// ── Orders last 7 days ────────────────────────────────────────
+
 async function loadOrdersLast7Days() {
     try {
         const data = await apiFetch("/dashboard/orders-last-7-days");

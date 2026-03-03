@@ -1,10 +1,7 @@
 package com.sports4u.sports4u_backend.dto.categorydto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import lombok.*;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -14,4 +11,5 @@ public class CategoryDTO {
     private Long categoryId;
     private String categoryName;
     private Long productCount;
+    private Long parentId;
 }

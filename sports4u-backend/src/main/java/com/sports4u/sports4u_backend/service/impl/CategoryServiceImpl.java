@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,28 +32,26 @@ public class CategoryServiceImpl implements ICategoryService {
     private final ProductRepository productRepository;
 
     @Cacheable(value = "categoryList", key = "#page + '-' + #size")
-    public PageResponse<CategoryDTO> getCategories(int page, int size) {
+    public PageResponse<CategoryDTO> getParentCategories(int page, int size) {
 
         Pageable pageable = PageRequest.of(page-1, size, Sort.by("categoryId").descending());
 
         Page<CategoryEntity> categoryPage =
-                categoryRepository.findAllByIsDeletedFalse(pageable);
+                categoryRepository.findByParentIsNullAndIsDeletedFalse(pageable);
 
-        List<CategoryDTO> content = categoryPage.getContent()
-                .stream()
-                .map(category -> {
-                    long productCount = productRepository
-                            .countByCategoryEntity_CategoryIdAndIsDeletedFalse(
-                                    category.getCategoryId()
-                            );
+        List<CategoryDTO> content = new ArrayList<>();
+        for (CategoryEntity category : categoryPage.getContent()) {
+            long productCount = productRepository
+                    .countByCategoryEntity_CategoryIdAndIsDeletedFalse(
+                            category.getCategoryId()
+                    );
 
-                    return CategoryDTO.builder()
-                            .categoryId(category.getCategoryId())
-                            .categoryName(category.getCategoryName())
-                            .productCount(productCount)
-                            .build();
-                })
-                .toList();
+            content.add(CategoryDTO.builder()
+                    .categoryId(category.getCategoryId())
+                    .categoryName(category.getCategoryName())
+                    .productCount(productCount)
+                    .build());
+        }
 
         return PageResponse.<CategoryDTO>builder()
                 .content(content)
@@ -62,10 +61,9 @@ public class CategoryServiceImpl implements ICategoryService {
                 .totalPages(categoryPage.getTotalPages())
                 .last(categoryPage.isLast())
                 .build();
-
     }
 
-    @Cacheable(value = "categoryList")
+    @Cacheable(value = "categoryList", key = "'all'")
     public CategoryListResponse getCategories() {
         List<CategoryDTO> categories = categoryRepository.findAllByIsDeletedFalse(Sort.by("categoryId"))
                 .stream()
@@ -89,27 +87,58 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
 
-
-    @Override
-    @CacheEvict(value = "categoryList", allEntries = true)
-    public CategoryDTO insertCategory(CategoryRequestDTO categoryRequestDTO) {
-        if (categoryRepository.existsByCategoryNameIgnoreCase(categoryRequestDTO.getCategoryName())) {
-            throw new IllegalArgumentException("Danh mục đã tồn tại");
+    public List<CategoryDTO> getCategoryChild(Long categoryId) {
+        if (!categoryRepository.existsByCategoryIdAndIsDeletedFalse(categoryId)) {
+            throw new NotFoundException("Danh mục không tồn tại");
         }
-        CategoryEntity category = CategoryEntity.builder()
-                .categoryName(categoryRequestDTO.getCategoryName())
-                .build();
 
-        CategoryEntity saved = categoryRepository.save(category);
+        List<CategoryEntity> childList = categoryRepository.findByParent_categoryIdAndIsDeletedFalse(categoryId);
 
-        return CategoryDTO.builder()
-                .categoryId(saved.getCategoryId())
-                .categoryName(saved.getCategoryName())
-                .build();
+        List<CategoryDTO> result = new ArrayList<>();
+        for (CategoryEntity child : childList) {
+            long productCount = productRepository
+                    .countByCategoryEntity_CategoryIdAndIsDeletedFalse(child.getCategoryId());
+
+            result.add(CategoryDTO.builder()
+                    .categoryId(child.getCategoryId())
+                    .categoryName(child.getCategoryName())
+                    .productCount(productCount)
+                    .parentId(child.getParent() != null ? child.getParent().getCategoryId() : null)
+                    .build());
+        }
+        return result;
     }
 
     @Override
-    @CacheEvict(value = "categoryList", allEntries = true)
+    @CacheEvict(value = {"categoryList", "categoryTree"}, allEntries = true)
+    public CategoryDTO insertCategory(CategoryRequestDTO dto) {
+        if (categoryRepository.existsByCategoryNameIgnoreCase(dto.getCategoryName())) {
+            throw new IllegalArgumentException("Danh mục đã tồn tại");
+        }
+
+        CategoryEntity.CategoryEntityBuilder builder = CategoryEntity.builder()
+                .categoryName(dto.getCategoryName());
+
+        // Nếu có parentId → là danh mục con
+        if (dto.getParentId() != null) {
+            CategoryEntity parent = categoryRepository.findByCategoryIdAndIsDeletedFalse(dto.getParentId());
+            if (parent == null) {
+                throw new NotFoundException("Danh mục cha không tồn tại");
+            }
+            // Không cho phép tạo danh mục cháu (chỉ 2 cấp)
+            if (parent.getParent() != null) {
+                throw new IllegalArgumentException("Chỉ hỗ trợ 2 cấp danh mục");
+            }
+            builder.parent(parent);
+        }
+
+        CategoryEntity saved = categoryRepository.save(builder.build());
+//        return mapToDTOFlat(saved);
+        return null;
+    }
+
+    @Override
+    @CacheEvict(value = {"categoryList", "categoryTree"}, allEntries = true)
     public void deleteCategory(Long categoryId) {
         if (categoryId == null || categoryId <= 0) {
             throw new IllegalArgumentException("Danh mục không hợp lệ");
@@ -128,4 +157,6 @@ public class CategoryServiceImpl implements ICategoryService {
         category.setIsDeleted(true);
         categoryRepository.save(category);
     }
+
+
 }

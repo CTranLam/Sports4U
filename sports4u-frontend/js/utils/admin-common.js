@@ -34,17 +34,3 @@ async function loadSidebarCategories() {
         console.error("Lỗi khi tải sidebar categories:", error);
     }
 }
-
-function renderSidebarCategories(categories) {
-    const sportMenu = document.getElementById("sportMenu");
-    if (!sportMenu) return;
-
-    sportMenu.innerHTML = `
-        <a class="nav-link text-white-50" href="product-category.html">Danh mục sản phẩm</a>
-        ${categories.map(cat => `
-            <a class="nav-link text-white-50" href="product-list.html?category=${cat.categoryId}&name=${encodeURIComponent(cat.categoryName)}">
-                ${cat.categoryName}
-            </a>
-        `).join("")}
-    `;
-}

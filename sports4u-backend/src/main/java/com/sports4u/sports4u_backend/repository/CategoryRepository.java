@@ -13,7 +13,9 @@ import java.util.List;
 @Repository
 public interface CategoryRepository extends JpaRepository<CategoryEntity,Long> {
     boolean existsByCategoryNameIgnoreCase(String categoryName);
-    Page<CategoryEntity> findAllByIsDeletedFalse(Pageable pageable);
+    Page<CategoryEntity> findByParentIsNullAndIsDeletedFalse(Pageable pageable);
     List<CategoryEntity> findAllByIsDeletedFalse(Sort sort);
     CategoryEntity findByCategoryIdAndIsDeletedFalse(Long categoryId);
+    List<CategoryEntity> findByParent_categoryIdAndIsDeletedFalse(Long parentId);
+    boolean existsByCategoryIdAndIsDeletedFalse(Long categoryId);
 }

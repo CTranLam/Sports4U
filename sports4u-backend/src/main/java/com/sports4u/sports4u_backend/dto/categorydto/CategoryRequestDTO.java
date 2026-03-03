@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CategoryRequestDTO {
-    @NotBlank(message = "Category name must not be blank")
+    @NotBlank(message = "Tên danh mục không được để trống")
     private String categoryName;
+
+    private Long parentId;
 }
