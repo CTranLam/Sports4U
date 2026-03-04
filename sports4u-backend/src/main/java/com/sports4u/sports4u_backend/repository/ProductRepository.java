@@ -30,4 +30,6 @@ public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
         GROUP BY c.categoryName
     """)
     List<Object[]> countProductByCategory();
+
+    Page<ProductEntity> findByProductNameContainingIgnoreCaseAndIsDeletedFalse(String keyword, Pageable pageable);
 }

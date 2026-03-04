@@ -12,6 +12,7 @@ public interface ICategoryService {
     PageResponse<CategoryDTO> getParentCategories(int page, int size);
     CategoryDTO insertCategory(CategoryRequestDTO categoryRequestDTO) throws IllegalArgumentException;
     void deleteCategory(Long categoryId) throws NotFoundException, IllegalArgumentException;
-    CategoryListResponse getCategories();
+    CategoryListResponse getParentCategories();
     List<CategoryDTO> getCategoryChild(Long categoryId);
+    List<CategoryDTO> getAllCategoryChild();
 }

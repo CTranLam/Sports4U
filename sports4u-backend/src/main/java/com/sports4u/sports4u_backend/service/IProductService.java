@@ -14,4 +14,5 @@ public interface IProductService {
     ProductAdminDTO updateProduct(Long id, ProductRequestDTO data, MultipartFile imageFile);
     void deleteProduct(Long productId) throws IllegalArgumentException;
     ProductDTO getProductById(Long id) throws IllegalArgumentException;
+    PageResponse<ProductDTO> searchProducts(String keyword, int page, int size);
 }

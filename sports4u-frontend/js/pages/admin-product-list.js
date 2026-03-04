@@ -71,6 +71,8 @@ function renderProducts(products) {
 
     if (categoryName) {
         document.getElementById("categoryTitle").textContent = decodeURIComponent(categoryName);
+    } else if (products.length > 0 && products[0].categoryName) {
+        document.getElementById("categoryTitle").textContent = products[0].categoryName;
     }
     if (products.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Không có sản phẩm nào</td></tr>`;

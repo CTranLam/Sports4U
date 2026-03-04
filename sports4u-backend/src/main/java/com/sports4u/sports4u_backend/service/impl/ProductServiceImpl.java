@@ -199,4 +199,25 @@ public class ProductServiceImpl implements IProductService {
         return ProductEntityToDTO.convertToProductDTO(product);
     }
 
+    @Override
+    public PageResponse<ProductDTO> searchProducts(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("productId").descending());
+        Page<ProductEntity> productPage =
+                productRepository.findByProductNameContainingIgnoreCaseAndIsDeletedFalse(keyword, pageable);
+
+        List<ProductDTO> products = productPage.getContent()
+                .stream()
+                .map(ProductEntityToDTO::convertToProductDTO)
+                .toList();
+
+        return PageResponse.<ProductDTO>builder()
+                .content(products)
+                .pageNumber(productPage.getNumber() + 1)
+                .pageSize(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .last(productPage.isLast())
+                .build();
+    }
+
 }

@@ -21,10 +21,17 @@ public class GuestController {
     private final ICategoryService categoryService;
     private final IProductService productService;
 
-    @GetMapping("/categories")
-    public ResponseEntity<ResponseDTO<CategoryListResponse>> getAllCategoriesForHome() {
+    @GetMapping("/categories/parents")
+    public ResponseEntity<ResponseDTO<CategoryListResponse>> getAllCategoriesParentForHome() {
         return ResponseEntity.ok(
-                new ResponseDTO<>("Lấy danh sách danh mục thành công", categoryService.getCategories())
+                new ResponseDTO<>("Lấy danh sách danh mục thành công", categoryService.getParentCategories())
+        );
+    }
+
+    @GetMapping("/categories/{categoryId}/child")
+    public ResponseEntity<ResponseDTO<List<CategoryDTO>>> getAllCategoriesChildrenForHome(@PathVariable Long categoryId) {
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy danh sách danh mục thành công", categoryService.getCategoryChild(categoryId))
         );
     }
 
@@ -49,6 +56,21 @@ public class GuestController {
         try {
             return ResponseEntity.ok(
                     new ResponseDTO<>("Lấy thông tin sản phẩm thành công", productService.getProductById(id))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseDTO<>(e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/products/search")
+    public ResponseEntity<ResponseDTO<PageResponse<?>>> searchProducts(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int size) {
+        try {
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Tìm kiếm sản phẩm thành công", productService.searchProducts(keyword, page, size))
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

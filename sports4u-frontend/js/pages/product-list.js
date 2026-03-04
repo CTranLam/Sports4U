@@ -1,14 +1,70 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const categoryId = urlParams.get('category');
+    const keyword = urlParams.get('keyword');
 
-    if (!categoryId) {
-        console.error("Không tìm thấy categoryId");
-        return;
+    if (keyword) {
+        await loadProductsByKeyword(keyword);
+    } else if (categoryId) {
+        await loadProductsByCategory(categoryId);
+    } else {
+        console.error("Không tìm thấy categoryId hoặc keyword");
     }
-
-    await loadProductsByCategory(categoryId); 
 });
+
+async function loadProductsByKeyword(keyword) {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const page = parseInt(urlParams.get('page')) || 1;
+        const size = 12;
+
+        // Cập nhật tiêu đề
+        const categoryTitle = document.querySelector("h3.fw-semibold");
+        if (categoryTitle) {
+            categoryTitle.textContent = `Kết quả tìm kiếm: "${keyword}"`;
+        }
+
+        const response = await fetch(`http://localhost:8080/api/products/search?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${size}`);
+
+        if (!response.ok) {
+            const productContainer = document.querySelector(".row.g-4");
+            if (productContainer) productContainer.innerHTML = `<div class="col-12 text-muted text-center py-5">Không tìm thấy sản phẩm nào</div>`;
+            return;
+        }
+
+        const result = await response.json();
+        const products = result.data?.content || [];
+
+        const productContainer = document.querySelector(".row.g-4");
+        if (!productContainer) return;
+        productContainer.innerHTML = "";
+
+        if (products.length === 0) {
+            productContainer.innerHTML = `<div class="col-12 text-muted text-center py-5">Không tìm thấy sản phẩm nào cho từ khoá "<strong>${keyword}</strong>"</div>`;
+            return;
+        }
+
+        products.forEach(product => {
+            const priceText = `${new Intl.NumberFormat('vi-VN').format(product.price || 0)} VND`;
+            productContainer.insertAdjacentHTML("beforeend", `
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <a href="product-detail.html?id=${product.productId}" class="text-decoration-none text-dark h-100 d-block">
+                        <div class="card border-0 bg-secondary bg-opacity-10 p-3 h-100">
+                            <img src="${product.imageUrl}" class="img-fluid mb-3" alt="${product.productName}" style="object-fit:contain; max-height:200px; width:100%">
+                            <p class="mb-1 small fw-semibold">${product.productName}</p>
+                            <p class="text-muted small mb-0">${priceText}</p>
+                        </div>
+                    </a>
+                </div>
+            `);
+        });
+
+        renderPagination(result.data, null, keyword);
+
+    } catch (error) {
+        console.error("Lỗi khi tìm kiếm sản phẩm:", error);
+    }
+}
 
 async function loadProductsByCategory(categoryId) {
     try {
@@ -62,14 +118,16 @@ async function loadProductsByCategory(categoryId) {
     }
 }
 
-function renderPagination(pageData, categoryId) {
+function renderPagination(pageData, categoryId, keyword = null) {
     const container = document.getElementById('paginationContainer');
     if (!container) return;
 
     container.innerHTML = '';
 
     const totalPages = pageData?.totalPages ?? 1;
-    const currentPage = pageData?.pageNumber ?? 1; 
+    const currentPage = pageData?.pageNumber ?? 1;
+
+    if (totalPages <= 1) return;
 
     // Previous
     const prev = document.createElement('button');
@@ -98,9 +156,16 @@ function renderPagination(pageData, categoryId) {
 
     function changePage(page) {
         const params = new URLSearchParams(window.location.search);
-        params.set('category', categoryId);
         params.set('page', page);
-        history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
-        loadProductsByCategory(categoryId);
+        if (keyword) {
+            params.set('keyword', keyword);
+            params.delete('category');
+            history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+            loadProductsByKeyword(keyword);
+        } else {
+            params.set('category', categoryId);
+            history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+            loadProductsByCategory(categoryId);
+        }
     }
 }

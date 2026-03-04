@@ -109,7 +109,7 @@ public class AdminController {
     }
 
     @GetMapping("/categories")
-    public ResponseEntity<ResponseDTO<?>> getCategories(
+    public ResponseEntity<ResponseDTO<?>> getCategoriesParent(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "5") int size) {
 
@@ -122,6 +122,13 @@ public class AdminController {
     public ResponseEntity<?> getCategoryChild(@PathVariable Long categoryId) {
         return ResponseEntity.ok(
                 new ResponseDTO<>("Lấy cây danh mục thành công", categoryService.getCategoryChild(categoryId))
+        );
+    }
+
+    @GetMapping("/categories/children")
+    public ResponseEntity<?> getAllCategoryChild() {
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy tất cả danh mục con thành công", categoryService.getAllCategoryChild())
         );
     }
 

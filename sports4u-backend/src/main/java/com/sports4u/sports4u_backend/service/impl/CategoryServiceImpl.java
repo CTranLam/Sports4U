@@ -31,25 +31,28 @@ public class CategoryServiceImpl implements ICategoryService {
 
     private final ProductRepository productRepository;
 
-    @Cacheable(value = "categoryList", key = "#page + '-' + #size")
     public PageResponse<CategoryDTO> getParentCategories(int page, int size) {
 
         Pageable pageable = PageRequest.of(page-1, size, Sort.by("categoryId").descending());
 
-        Page<CategoryEntity> categoryPage =
-                categoryRepository.findByParentIsNullAndIsDeletedFalse(pageable);
+        Page<CategoryEntity> categoryPage = categoryRepository.findByParentIsNullAndIsDeletedFalse(pageable);
 
         List<CategoryDTO> content = new ArrayList<>();
-        for (CategoryEntity category : categoryPage.getContent()) {
-            long productCount = productRepository
-                    .countByCategoryEntity_CategoryIdAndIsDeletedFalse(
-                            category.getCategoryId()
-                    );
+        for (CategoryEntity parent : categoryPage.getContent()) {
+
+            List<CategoryEntity> children = categoryRepository
+                    .findByParent_categoryIdAndIsDeletedFalse(parent.getCategoryId());
+
+            long totalProductCount = 0;
+            for (CategoryEntity child : children) {
+                totalProductCount += productRepository
+                        .countByCategoryEntity_CategoryIdAndIsDeletedFalse(child.getCategoryId());
+            }
 
             content.add(CategoryDTO.builder()
-                    .categoryId(category.getCategoryId())
-                    .categoryName(category.getCategoryName())
-                    .productCount(productCount)
+                    .categoryId(parent.getCategoryId())
+                    .categoryName(parent.getCategoryName())
+                    .productCount(totalProductCount)
                     .build());
         }
 
@@ -63,26 +66,30 @@ public class CategoryServiceImpl implements ICategoryService {
                 .build();
     }
 
-    @Cacheable(value = "categoryList", key = "'all'")
-    public CategoryListResponse getCategories() {
-        List<CategoryDTO> categories = categoryRepository.findAllByIsDeletedFalse(Sort.by("categoryId"))
-                .stream()
-                .map(category -> {
-                    long productCount = productRepository
-                            .countByCategoryEntity_CategoryIdAndIsDeletedFalse(
-                                    category.getCategoryId()
-                            );
+    public CategoryListResponse getParentCategories() {
+        List<CategoryEntity> parents = categoryRepository.findByParentIsNullAndIsDeletedFalse(Sort.by("categoryId"));
 
-                    return CategoryDTO.builder()
-                            .categoryId(category.getCategoryId())
-                            .categoryName(category.getCategoryName())
-                            .productCount(productCount)
-                            .build();
-                })
-                .toList();
+        List<CategoryDTO> result = new ArrayList<>();
+        for (CategoryEntity parent : parents) {
+            long totalProductCount = 0;
+
+            List<CategoryEntity> children = categoryRepository
+                    .findByParent_categoryIdAndIsDeletedFalse(parent.getCategoryId());
+
+            for (CategoryEntity child : children) {
+                totalProductCount += productRepository
+                        .countByCategoryEntity_CategoryIdAndIsDeletedFalse(child.getCategoryId());
+            }
+
+            result.add(CategoryDTO.builder()
+                    .categoryId(parent.getCategoryId())
+                    .categoryName(parent.getCategoryName())
+                    .productCount(totalProductCount)
+                    .build());
+        }
 
         return CategoryListResponse.builder()
-                .categories(categories)
+                .categories(result)
                 .build();
     }
 
@@ -104,6 +111,25 @@ public class CategoryServiceImpl implements ICategoryService {
                     .categoryName(child.getCategoryName())
                     .productCount(productCount)
                     .parentId(child.getParent() != null ? child.getParent().getCategoryId() : null)
+                    .build());
+        }
+        return result;
+    }
+
+    @Override
+    public List<CategoryDTO> getAllCategoryChild() {
+        List<CategoryEntity> childList = categoryRepository.findByParentIsNotNullAndIsDeletedFalse();
+
+        List<CategoryDTO> result = new ArrayList<>();
+        for (CategoryEntity child : childList) {
+            long productCount = productRepository
+                    .countByCategoryEntity_CategoryIdAndIsDeletedFalse(child.getCategoryId());
+
+            result.add(CategoryDTO.builder()
+                    .categoryId(child.getCategoryId())
+                    .categoryName(child.getCategoryName())
+                    .productCount(productCount)
+                    .parentId(child.getParent().getCategoryId())
                     .build());
         }
         return result;
@@ -133,23 +159,35 @@ public class CategoryServiceImpl implements ICategoryService {
         }
 
         CategoryEntity saved = categoryRepository.save(builder.build());
-//        return mapToDTOFlat(saved);
-        return null;
+
+        return CategoryDTO.builder()
+                .categoryId(saved.getCategoryId())
+                .categoryName(saved.getCategoryName())
+                .parentId(saved.getParent() != null ? saved.getParent().getCategoryId() : null)
+                .build();
     }
 
     @Override
-    @CacheEvict(value = {"categoryList", "categoryTree"}, allEntries = true)
+    @CacheEvict(value = {"categoryList", "categoryTree", "categoryParent"}, allEntries = true)
     public void deleteCategory(Long categoryId) {
         if (categoryId == null || categoryId <= 0) {
             throw new IllegalArgumentException("Danh mục không hợp lệ");
         }
-        CategoryEntity category = categoryRepository.findByCategoryIdAndIsDeletedFalse(categoryId);
 
-        if(category == null) {
+        CategoryEntity category = categoryRepository.findByCategoryIdAndIsDeletedFalse(categoryId);
+        if (category == null) {
             throw new NotFoundException("Danh mục không tồn tại");
         }
 
-        boolean hasProducts = productRepository.existsByCategoryEntity_CategoryIdAndIsDeletedFalse(categoryId);
+        if (category.getParent() == null) {
+            List<CategoryEntity> children = categoryRepository
+                    .findByParent_categoryIdAndIsDeletedFalse(categoryId);
+            if (!children.isEmpty()) {
+                throw new IllegalArgumentException("Không thể xóa danh mục cha vì còn chứa danh mục con");
+            }
+        }
+        boolean hasProducts = productRepository
+                .existsByCategoryEntity_CategoryIdAndIsDeletedFalse(categoryId);
         if (hasProducts) {
             throw new IllegalArgumentException("Không thể xóa danh mục vì còn chứa các sản phẩm");
         }
