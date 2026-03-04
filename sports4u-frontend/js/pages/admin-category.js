@@ -1,6 +1,7 @@
 let currentPage = 1;
 let expandedCategoryId = null;
 let allCategories = []; // Store all categories for parent dropdown
+let allChildCategories = []; // Store child categories for search
 
 document.addEventListener("DOMContentLoaded", async () => {
     const token = localStorage.getItem("accessToken");
@@ -41,6 +42,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("saveProductFromCategoryBtn").addEventListener("click", async () => {
         await saveProductFromCategory(token);
     });
+
+    // Load child categories cho search
+    await loadAllChildCategoriesForSearch(token);
+    initCategorySearch();
 });
 
 // ── Lấy tất cả categories và populate dropdown ──
@@ -383,4 +388,65 @@ function renderPagination(pageData, token) {
     next.disabled = currentPage >= totalPages;
     next.onclick = async () => { currentPage++; await loadParentCategories(token); };
     container.appendChild(next);
+}
+
+// ── SEARCH DANH MỤC CON ──
+async function loadAllChildCategoriesForSearch(token) {
+    try {
+        const response = await fetch(
+            `http://localhost:8080/api/admin/categories/children`,
+            { headers: { "Authorization": `Bearer ${token}` } }
+        );
+        const result = await response.json();
+        if (!response.ok) return;
+        allChildCategories = Array.isArray(result.data) ? result.data : [];
+    } catch (error) {
+        console.error("Lỗi load child categories cho search:", error);
+    }
+}
+
+function initCategorySearch() {
+    const input = document.getElementById("categorySearchInput");
+    const suggestions = document.getElementById("categorySearchSuggestions");
+    if (!input || !suggestions) return;
+
+    input.addEventListener("input", () => {
+        const keyword = input.value.trim().toLowerCase();
+
+        if (!keyword) {
+            suggestions.classList.add("d-none");
+            suggestions.innerHTML = "";
+            return;
+        }
+
+        const matched = allChildCategories.filter(cat =>
+            cat.categoryName.toLowerCase().includes(keyword)
+        );
+
+        if (matched.length === 0) {
+            suggestions.innerHTML = `<li class="list-group-item text-muted small py-2">Không tìm thấy danh mục</li>`;
+            suggestions.classList.remove("d-none");
+            return;
+        }
+
+        suggestions.innerHTML = matched.map(cat => `
+            <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2"
+                style="cursor:pointer;"
+                onclick="window.location.href='product-list.html?category=${cat.categoryId}&name=${encodeURIComponent(cat.categoryName)}'">
+                <span>
+                    <i class="bi bi-tag me-2 text-primary" style="font-size:12px"></i>
+                    ${cat.categoryName}
+                </span>
+                <span class="badge bg-secondary rounded-pill">${cat.productCount ?? 0} SP</span>
+            </li>
+        `).join("");
+        suggestions.classList.remove("d-none");
+    });
+
+    // Đóng suggestions khi click ra ngoài
+    document.addEventListener("click", (e) => {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.classList.add("d-none");
+        }
+    });
 }
