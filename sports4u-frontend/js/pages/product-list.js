@@ -68,7 +68,7 @@ async function loadProductsByKeyword(keyword) {
 
 async function loadProductsByCategory(categoryId) {
     try {
-        const size = 1;
+        const size = 4;
         const urlParams = new URLSearchParams(window.location.search);
         const page = parseInt(urlParams.get('page')) || 1;
 

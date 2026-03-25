@@ -28,11 +28,34 @@ public class GuestController {
         );
     }
 
+    @GetMapping("/categories")
+    public ResponseEntity<ResponseDTO<CategoryListResponse>> getAllCategories() {
+        // Returns all child categories (leaf nodes that contain products)
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy danh sách danh mục thành công",
+                        CategoryListResponse.builder()
+                                .categories(categoryService.getAllCategoryChild())
+                                .build())
+        );
+    }
+
     @GetMapping("/categories/{categoryId}/child")
     public ResponseEntity<ResponseDTO<List<CategoryDTO>>> getAllCategoriesChildrenForHome(@PathVariable Long categoryId) {
         return ResponseEntity.ok(
                 new ResponseDTO<>("Lấy danh sách danh mục thành công", categoryService.getCategoryChild(categoryId))
         );
+    }
+
+    @GetMapping("/categories/{categoryId}/children")
+    public ResponseEntity<?> getCategoryChildren(@PathVariable Long categoryId) {
+        try {
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy danh sách danh mục con thành công", categoryService.getCategoryChild(categoryId))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseDTO<>(e.getMessage(), null));
+        }
     }
 
     @GetMapping("/categories/{id}/products")

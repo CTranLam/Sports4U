@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -155,6 +156,28 @@ public class AdminController {
                     .body(new ResponseDTO<>(e.getMessage(), null));
         }
 
+    }
+
+    @GetMapping("/products")
+    public ResponseEntity<ResponseDTO<PageResponse<ProductAdminDTO>>> getAllProducts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String stockStatus,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            PageResponse<ProductAdminDTO> products = productService.getAllProductsForAdmin(
+                    keyword, categoryId, stockStatus, minPrice, maxPrice, page, size
+            );
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy danh sách sản phẩm thành công", products)
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseDTO<>(e.getMessage(), null));
+        }
     }
 
     @PostMapping(value = "/product", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

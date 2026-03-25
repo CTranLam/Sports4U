@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -96,6 +97,45 @@ public class ProductServiceImpl implements IProductService {
                 .last(productPage.isLast())
                 .build();
 
+    }
+
+    @Override
+    public PageResponse<ProductAdminDTO> getAllProductsForAdmin(String keyword, Long categoryId, String stockStatus,
+                                                               BigDecimal minPrice, BigDecimal maxPrice,
+                                                               int page, int size) {
+        // NOTE: Do NOT pass Sort to Pageable when using a native query —
+        // Spring Data JPA cannot inject Sort into native SQL and will throw an exception.
+        // ORDER BY is already hardcoded in the query.
+        Pageable pageable = PageRequest.of(page - 1, size);
+
+        // Convert stockStatus string to Boolean
+        Boolean inStock = null;
+        if ("IN_STOCK".equalsIgnoreCase(stockStatus)) {
+            inStock = true;
+        } else if ("OUT_OF_STOCK".equalsIgnoreCase(stockStatus)) {
+            inStock = false;
+        }
+
+        // Treat blank keyword as null
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
+
+        Page<ProductEntity> productPage = productRepository.findAllWithFilters(
+                kw, categoryId, inStock, minPrice, maxPrice, pageable
+        );
+
+        List<ProductAdminDTO> products = productPage.getContent()
+                .stream()
+                .map(ProductEntityToDTO::convertProductAdminDTO)
+                .toList();
+
+        return PageResponse.<ProductAdminDTO>builder()
+                .content(products)
+                .pageNumber(productPage.getNumber() + 1)
+                .pageSize(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .last(productPage.isLast())
+                .build();
     }
 
     @Override
