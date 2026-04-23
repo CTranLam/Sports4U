@@ -41,6 +41,7 @@ public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
           AND (CAST(:inStock AS boolean) IS NULL
                OR (CAST(:inStock AS boolean) = true AND p.stock_quantity > 0)
                OR (CAST(:inStock AS boolean) = false AND p.stock_quantity = 0))
+          AND (CAST(:isPopular AS boolean) IS NULL OR p.is_popular = CAST(:isPopular AS boolean))
           AND (CAST(:minPrice AS numeric) IS NULL OR p.price >= CAST(:minPrice AS numeric))
           AND (CAST(:maxPrice AS numeric) IS NULL OR p.price <= CAST(:maxPrice AS numeric))
         ORDER BY p.product_id DESC
@@ -53,6 +54,7 @@ public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
           AND (CAST(:inStock AS boolean) IS NULL
                OR (CAST(:inStock AS boolean) = true AND p.stock_quantity > 0)
                OR (CAST(:inStock AS boolean) = false AND p.stock_quantity = 0))
+          AND (CAST(:isPopular AS boolean) IS NULL OR p.is_popular = CAST(:isPopular AS boolean))
           AND (CAST(:minPrice AS numeric) IS NULL OR p.price >= CAST(:minPrice AS numeric))
           AND (CAST(:maxPrice AS numeric) IS NULL OR p.price <= CAST(:maxPrice AS numeric))
     """,
@@ -61,8 +63,11 @@ public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
             @Param("keyword") String keyword,
             @Param("categoryId") Long categoryId,
             @Param("inStock") Boolean inStock,
+            @Param("isPopular") Boolean isPopular,
             @Param("minPrice") BigDecimal minPrice,
             @Param("maxPrice") BigDecimal maxPrice,
             Pageable pageable
     );
+
+    Page<ProductEntity> findByCategoryEntity_parent_CategoryIdAndIsPopularTrueAndIsDeletedFalse(Long CategoryId, Pageable pageable);
 }

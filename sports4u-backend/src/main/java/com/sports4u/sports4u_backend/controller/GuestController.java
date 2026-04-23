@@ -2,6 +2,7 @@ package com.sports4u.sports4u_backend.controller;
 
 import com.sports4u.sports4u_backend.dto.categorydto.CategoryDTO;
 import com.sports4u.sports4u_backend.dto.categorydto.CategoryListResponse;
+import com.sports4u.sports4u_backend.dto.productdto.ProductDTO;
 import com.sports4u.sports4u_backend.service.ICategoryService;
 import com.sports4u.sports4u_backend.service.IProductService;
 import com.sports4u.sports4u_backend.utils.PageResponse;
@@ -28,16 +29,16 @@ public class GuestController {
         );
     }
 
-    @GetMapping("/categories")
-    public ResponseEntity<ResponseDTO<CategoryListResponse>> getAllCategories() {
-        // Returns all child categories (leaf nodes that contain products)
-        return ResponseEntity.ok(
-                new ResponseDTO<>("Lấy danh sách danh mục thành công",
-                        CategoryListResponse.builder()
-                                .categories(categoryService.getAllCategoryChild())
-                                .build())
-        );
-    }
+//    @GetMapping("/categories")
+//    public ResponseEntity<ResponseDTO<CategoryListResponse>> getAllCategories() {
+//        // Returns all child categories (leaf nodes that contain products)
+//        return ResponseEntity.ok(
+//                new ResponseDTO<>("Lấy danh sách danh mục thành công",
+//                        CategoryListResponse.builder()
+//                                .categories(categoryService.getAllCategoryChild())
+//                                .build())
+//        );
+//    }
 
     @GetMapping("/categories/{categoryId}/child")
     public ResponseEntity<ResponseDTO<List<CategoryDTO>>> getAllCategoriesChildrenForHome(@PathVariable Long categoryId) {
@@ -79,6 +80,22 @@ public class GuestController {
         try {
             return ResponseEntity.ok(
                     new ResponseDTO<>("Lấy thông tin sản phẩm thành công", productService.getProductById(id))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseDTO<>(e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/products/popular/{categoryId}")
+    public ResponseEntity<ResponseDTO<PageResponse<ProductDTO>>> getPopularProducts(
+            @PathVariable Long categoryId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        try {
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy danh sách sản phẩm phổ biến thành công", productService.getProductsPopularByCategory(categoryId, page, size))
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

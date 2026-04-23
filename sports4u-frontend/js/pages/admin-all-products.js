@@ -3,6 +3,7 @@ let currentPage = 1;
 let activeFilters = {
     keyword: "",
     categoryId: "",
+    isPopular: "",
     minPrice: "",
     maxPrice: ""
 };
@@ -23,6 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         currentPage = 1;
         activeFilters.keyword   = document.getElementById("filterKeyword").value.trim();
         activeFilters.categoryId = document.getElementById("filterCategory").value;
+        activeFilters.isPopular = document.getElementById("filterIsPopular").value;
         activeFilters.minPrice  = document.getElementById("filterMinPrice").value;
         activeFilters.maxPrice  = document.getElementById("filterMaxPrice").value;
         loadProducts(token);
@@ -31,9 +33,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("resetFilterBtn").addEventListener("click", () => {
         document.getElementById("filterKeyword").value = "";
         document.getElementById("filterCategory").value = "";
+        document.getElementById("filterIsPopular").value = "";
         document.getElementById("filterMinPrice").value = "";
         document.getElementById("filterMaxPrice").value = "";
-        activeFilters = { keyword: "", categoryId: "", minPrice: "", maxPrice: "" };
+        activeFilters = { keyword: "", categoryId: "", isPopular: "", minPrice: "", maxPrice: "" };
         currentPage = 1;
         loadProducts(token);
     });
@@ -101,6 +104,7 @@ function buildQueryParams() {
     });
     if (activeFilters.keyword)    params.append("keyword",    activeFilters.keyword);
     if (activeFilters.categoryId) params.append("categoryId", activeFilters.categoryId);
+    if (activeFilters.isPopular !== "") params.append("isPopular", activeFilters.isPopular === "true");
     if (activeFilters.minPrice)   params.append("minPrice",   activeFilters.minPrice);
     if (activeFilters.maxPrice)   params.append("maxPrice",   activeFilters.maxPrice);
     return params.toString();
@@ -109,7 +113,7 @@ function buildQueryParams() {
 // ── Load products ─────────────────────────────────────────────────────────────
 async function loadProducts(token) {
     const tbody = document.getElementById("allProductsTable");
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5">
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5">
         <div class="spinner-border spinner-border-sm me-2" role="status"></div>Đang tải...
     </td></tr>`;
 
@@ -120,7 +124,7 @@ async function loadProducts(token) {
         );
         const result = await res.json();
         if (!res.ok) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${result.message || "Không thể tải sản phẩm"}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">${result.message || "Không thể tải sản phẩm"}</td></tr>`;
             return;
         }
 
@@ -132,7 +136,7 @@ async function loadProducts(token) {
         renderPagination(pageData, token);
     } catch (err) {
         console.error("Lỗi khi tải sản phẩm:", err);
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Lỗi kết nối server</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Lỗi kết nối server</td></tr>`;
     }
 }
 
@@ -141,7 +145,7 @@ function renderProducts(products) {
     const tbody = document.getElementById("allProductsTable");
 
     if (products.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-5">
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5">
             <i class="bi bi-inbox fs-3 d-block mb-2 text-secondary"></i>
             Không tìm thấy sản phẩm nào
         </td></tr>`;
@@ -167,6 +171,11 @@ function renderProducts(products) {
             <td class="text-center">
                 <span class="badge rounded-pill ${p.quantity > 0 ? 'bg-success' : 'bg-danger'}">
                     ${p.quantity > 0 ? p.quantity : 'Hết hàng'}
+                </span>
+            </td>
+            <td class="text-center">
+                <span class="badge rounded-pill ${p.isPopular ? 'bg-warning text-dark' : 'bg-secondary'}">
+                    ${p.isPopular ? 'Hot' : 'Không'}
                 </span>
             </td>
             <td class="text-end pe-3 text-nowrap">
@@ -263,6 +272,7 @@ async function openProductModal(product) {
     document.getElementById("productQuantity").value      = isEdit ? product.quantity : "";
     document.getElementById("productOrigin").value        = isEdit ? (product.origin || "") : "";
     document.getElementById("productAdvantages").value    = isEdit ? (product.advantages || "") : "";
+    document.getElementById("productIsPopular").value     = isEdit ? String(!!product.isPopular) : "false";
     document.getElementById("productCategorySelect").value = isEdit ? (product.categoryId || "") : "";
 
     const preview = document.getElementById("productImagePreview");
@@ -283,6 +293,7 @@ async function saveProduct(token) {
     const productId  = document.getElementById("editProductId").value;
     const isEdit     = !!productId;
     const categoryId = document.getElementById("productCategorySelect").value;
+    const isPopularValue = document.getElementById("productIsPopular").value;
 
     const data = {
         productName:   document.getElementById("productName").value.trim(),
@@ -290,7 +301,8 @@ async function saveProduct(token) {
         stockQuantity: parseInt(document.getElementById("productQuantity").value),
         origin:        document.getElementById("productOrigin").value.trim(),
         advantages:    document.getElementById("productAdvantages").value.trim(),
-        categoryId:    categoryId ? parseInt(categoryId) : null
+        categoryId:    categoryId ? parseInt(categoryId) : null,
+        isPopular:     isPopularValue === "true"
     };
 
     const imageFile = document.getElementById("productImage").files[0];

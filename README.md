@@ -121,7 +121,7 @@ Sports4U/
 | Entity | Mô tả |
 |--------|-------|
 | `UserEntity` | Thông tin người dùng (email, password, role, address) |
-| `ProductEntity` | Sản phẩm (name, price, stock, category, image) |
+| `ProductEntity` | Sản phẩm (name, price, stock, category, image, `isPopular`) |
 | `CategoryEntity` | Danh mục sản phẩm |
 | `CartItemEntity` | Giỏ hàng của user |
 | `OrderEntity` | Đơn hàng |
@@ -259,9 +259,13 @@ Sử dụng các thông tin test sau khi thanh toán trên sandbox:
 
 ### Guest APIs (Public)
 ```
-GET  /api/categories                    # Lấy danh sách danh mục
-GET  /api/categories/{id}/products      # Lấy sản phẩm theo danh mục
-GET  /api/products/{id}                 # Chi tiết sản phẩm
+GET  /api/categories/parents                 # Danh mục cha (trang chủ)
+GET  /api/categories/{categoryId}/child      # Danh mục con theo danh mục cha
+GET  /api/categories/{categoryId}/children   # Alias danh mục con
+GET  /api/categories/{id}/products           # Lấy sản phẩm theo danh mục
+GET  /api/products/popular/{categoryId}      # Sản phẩm hot theo danh mục cha
+GET  /api/products/search                     # Tìm kiếm sản phẩm
+GET  /api/products/{id}                       # Chi tiết sản phẩm
 ```
 
 ### User APIs (Authenticated)
@@ -312,6 +316,7 @@ GET    /api/admin/categories            # Danh sách danh mục (phân trang)
 DELETE /api/admin/categories/{id}       # Xóa danh mục (soft delete)
 
 # Quản lý sản phẩm
+GET    /api/admin/products              # Danh sách sản phẩm (filter: keyword, categoryId, stockStatus, isPopular, minPrice, maxPrice)
 POST   /api/admin/product               # Tạo sản phẩm (multipart/form-data)
 PUT    /api/admin/products/{id}         # Cập nhật sản phẩm
 DELETE /api/admin/products/{id}         # Xóa sản phẩm (soft delete)
@@ -326,7 +331,19 @@ GET    /api/admin/dashboard/summary            # Tổng quan (users, products, o
 GET    /api/admin/dashboard/revenue-by-month   # Doanh thu theo tháng (?year=2026)
 GET    /api/admin/dashboard/product-by-category # Số lượng sản phẩm theo danh mục
 GET    /api/admin/dashboard/orders-last-7-days # Đơn hàng 7 ngày gần nhất
+GET    /api/admin/dashboard/product-purchase-stats # Thống kê số lượng sản phẩm đã mua
 ```
+
+## Cập nhật mới (04/2026)
+
+- Bổ sung cờ `isPopular` cho sản phẩm (Entity/DTO/API), kèm script DB `V001__add_is_popular_column.sql`.
+- Trang chủ có section **Sản phẩm hot** theo từng danh mục cha, có badge `HOT` và phân trang.
+- Admin All Products hỗ trợ:
+  - lọc theo trạng thái hot (`isPopular`)
+  - hiển thị cột trạng thái hot trong bảng
+  - tạo/sửa sản phẩm với trường `Trạng thái hot`
+- Dashboard admin có thêm bảng **Thống kê số lượng sản phẩm đã mua** (xếp hạng theo số lượng).
+- `product-list.html` đã bỏ dữ liệu mẫu tĩnh, ưu tiên render dữ liệu động từ API.
 
 ## Tính năng chính
 
@@ -334,6 +351,7 @@ GET    /api/admin/dashboard/orders-last-7-days # Đơn hàng 7 ngày gần nhấ
 - ✅ Đăng ký / Đăng nhập
 - ✅ Quên mật khẩu với OTP qua email
 - ✅ Xem danh sách sản phẩm theo danh mục
+- ✅ Xem danh sách sản phẩm hot theo danh mục (badge HOT, có phân trang)
 - ✅ Xem chi tiết sản phẩm
 - ✅ Thêm sản phẩm vào giỏ hàng
 - ✅ Đặt hàng từ giỏ hàng hoặc mua ngay
@@ -345,7 +363,9 @@ GET    /api/admin/dashboard/orders-last-7-days # Đơn hàng 7 ngày gần nhấ
 - ✅ Quản lý tài khoản người dùng (CRUD, khóa/mở khóa)
 - ✅ Quản lý danh mục sản phẩm
 - ✅ Quản lý sản phẩm (CRUD, upload ảnh lên Cloudinary)
+- ✅ Gắn nhãn sản phẩm hot và lọc danh sách sản phẩm theo trạng thái hot
 - ✅ Quản lý đơn hàng (xem, cập nhật trạng thái)
+- ✅ Dashboard thống kê thêm số lượng sản phẩm đã mua
 
 ### Hệ thống
 - ✅ Gửi email bất đồng bộ qua RabbitMQ
@@ -373,6 +393,11 @@ cd Sports4U
 Tạo database PostgreSQL:
 ```sql
 CREATE DATABASE sports4u;
+```
+
+Chạy thêm script migration cho cột `is_popular` (nếu DB hiện tại chưa có):
+```bash
+psql -U your_username -d sports4u -f sports4u-backend/src/main/resources/migration/V001__add_is_popular_column.sql
 ```
 
 ### 3. Cấu hình Backend
@@ -488,8 +513,8 @@ sports4u-frontend/
 │       ├── dashboard.html     # Trang quản trị
 │       ├── users.html         # Quản lý tài khoản
 │       ├── product-category.html # Quản lý danh mục
-│       ├── product-list.html  # Quản lý sản phẩm
-│       ├── product-form.html  # Form thêm/sửa sản phẩm
+│       ├── product-list.html  # Quản lý sản phẩm theo danh mục
+│       ├── all-products.html  # Quản lý toàn bộ sản phẩm + bộ lọc nâng cao
 │       └── orders.html        # Quản lý đơn hàng
 ├── js/
 │   ├── api/                   # API calls

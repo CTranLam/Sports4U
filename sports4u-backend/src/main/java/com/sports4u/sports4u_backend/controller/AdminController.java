@@ -163,13 +163,14 @@ public class AdminController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String stockStatus,
+            @RequestParam(required = false) Boolean isPopular,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
             PageResponse<ProductAdminDTO> products = productService.getAllProductsForAdmin(
-                    keyword, categoryId, stockStatus, minPrice, maxPrice, page, size
+                    keyword, categoryId, stockStatus, isPopular, minPrice, maxPrice, page, size
             );
             return ResponseEntity.ok(
                     new ResponseDTO<>("Lấy danh sách sản phẩm thành công", products)
@@ -268,6 +269,13 @@ public class AdminController {
     public ResponseEntity<?> getOrdersLast7Days() {
         return ResponseEntity.ok(
                 new ResponseDTO<>("Lấy thành công thống kê đơn hàng 7 ngày gần nhất", dashboardService.getOrdersLast7Days())
+        );
+    }
+
+    @GetMapping("/dashboard/product-purchase-stats")
+    public ResponseEntity<?> getProductPurchaseStats() {
+        return ResponseEntity.ok(
+                new ResponseDTO<>("Lấy thành công thống kê sản phẩm đã mua", dashboardService.getProductPurchaseStats())
         );
     }
 

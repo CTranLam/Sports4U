@@ -68,6 +68,7 @@ public class ProductServiceImpl implements IProductService {
                 .build();
     }
 
+
     @Override
     @Cacheable(value = "productList", key = "'admin-' + #categoryId + '-' + #page + '-' + #size")
     public PageResponse<ProductAdminDTO> getProductsByCategoryForAdmin(Long categoryId, int page, int size) {
@@ -101,7 +102,7 @@ public class ProductServiceImpl implements IProductService {
 
     @Override
     public PageResponse<ProductAdminDTO> getAllProductsForAdmin(String keyword, Long categoryId, String stockStatus,
-                                                               BigDecimal minPrice, BigDecimal maxPrice,
+                                                               Boolean isPopular, BigDecimal minPrice, BigDecimal maxPrice,
                                                                int page, int size) {
         // NOTE: Do NOT pass Sort to Pageable when using a native query —
         // Spring Data JPA cannot inject Sort into native SQL and will throw an exception.
@@ -120,7 +121,7 @@ public class ProductServiceImpl implements IProductService {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
 
         Page<ProductEntity> productPage = productRepository.findAllWithFilters(
-                kw, categoryId, inStock, minPrice, maxPrice, pageable
+                kw, categoryId, inStock, isPopular, minPrice, maxPrice, pageable
         );
 
         List<ProductAdminDTO> products = productPage.getContent()
@@ -183,6 +184,7 @@ public class ProductServiceImpl implements IProductService {
                 .stockQuantity(data.getStockQuantity())
                 .imageUrl(imageUrl)
                 .isDeleted(false)
+                .isPopular(data.getIsPopular() != null ? data.getIsPopular() : false)
                 .build();
 
         productRepository.save(product);
@@ -207,6 +209,9 @@ public class ProductServiceImpl implements IProductService {
         product.setOrigin(data.getOrigin());
         product.setAdvantages(data.getAdvantages());
         product.setStockQuantity(data.getStockQuantity());
+        if (data.getIsPopular() != null) {
+            product.setIsPopular(data.getIsPopular());
+        }
 
         if (imageFile != null && !imageFile.isEmpty()) {
             String imageUrl = cloudinaryService.upload(imageFile);
@@ -244,6 +249,28 @@ public class ProductServiceImpl implements IProductService {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("productId").descending());
         Page<ProductEntity> productPage =
                 productRepository.findByProductNameContainingIgnoreCaseAndIsDeletedFalse(keyword, pageable);
+
+        List<ProductDTO> products = productPage.getContent()
+                .stream()
+                .map(ProductEntityToDTO::convertToProductDTO)
+                .toList();
+
+        return PageResponse.<ProductDTO>builder()
+                .content(products)
+                .pageNumber(productPage.getNumber() + 1)
+                .pageSize(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .last(productPage.isLast())
+                .build();
+    }
+
+    @Override
+    public PageResponse<ProductDTO> getProductsPopularByCategory(Long categoryId, int page, int size) throws IllegalArgumentException {
+
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("productId").descending());
+        Page<ProductEntity> productPage = productRepository
+                .findByCategoryEntity_parent_CategoryIdAndIsPopularTrueAndIsDeletedFalse(categoryId, pageable);
 
         List<ProductDTO> products = productPage.getContent()
                 .stream()

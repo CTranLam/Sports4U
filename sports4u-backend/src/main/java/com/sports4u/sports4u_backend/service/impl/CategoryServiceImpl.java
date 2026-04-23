@@ -168,7 +168,6 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
-    @CacheEvict(value = {"categoryList", "categoryTree", "categoryParent"}, allEntries = true)
     public void deleteCategory(Long categoryId) {
         if (categoryId == null || categoryId <= 0) {
             throw new IllegalArgumentException("Danh mục không hợp lệ");

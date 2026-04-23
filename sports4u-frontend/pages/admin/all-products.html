@@ -79,7 +79,7 @@
                 <!-- Filter bar -->
                 <div class="filter-card shadow-sm p-3 mb-4">
                     <div class="row g-3 align-items-end">
-                        <div class="col-lg-4 col-md-6">
+                        <div class="col-lg-3 col-md-6">
                             <div class="filter-label"><i class="bi bi-search me-1"></i>Tên sản phẩm</div>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
@@ -87,10 +87,18 @@
                                     placeholder="Nhập tên sản phẩm...">
                             </div>
                         </div>
-                        <div class="col-lg-3 col-md-6">
+                        <div class="col-lg-2 col-md-6">
                             <div class="filter-label"><i class="bi bi-tags me-1"></i>Danh mục</div>
                             <select class="form-select form-select-sm bg-light" id="filterCategory">
                                 <option value="">Tất cả danh mục</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-4">
+                            <div class="filter-label"><i class="bi bi-fire me-1"></i>Trạng thái hot</div>
+                            <select class="form-select form-select-sm bg-light" id="filterIsPopular">
+                                <option value="">Tất cả</option>
+                                <option value="true">Hot</option>
+                                <option value="false">Không hot</option>
                             </select>
                         </div>
                         <div class="col-lg-2 col-md-4">
@@ -130,12 +138,13 @@
                                     <th>Danh mục</th>
                                     <th>Giá</th>
                                     <th class="text-center">Tồn kho</th>
+                                    <th class="text-center">Hot</th>
                                     <th class="text-end" style="width:110px">Hành động</th>
                                 </tr>
                             </thead>
                             <tbody id="allProductsTable">
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-5">
+                                    <td colspan="7" class="text-center text-muted py-5">
                                         <div class="spinner-border spinner-border-sm me-2" role="status"></div>
                                         Đang tải...
                                     </td>
@@ -188,6 +197,13 @@
                     <div class="mb-3">
                         <label class="form-label">Ưu điểm</label>
                         <input type="text" class="form-control" id="productAdvantages" placeholder="Nhập ưu điểm">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái hot</label>
+                        <select class="form-select" id="productIsPopular">
+                            <option value="false">Không hot</option>
+                            <option value="true">Hot</option>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Hình ảnh</label>

@@ -10,4 +10,6 @@ public interface IDashboardService {
     ProductCategoryStatsListResponse getProductByCategory();
 
     OrdersLast7DaysListResponse getOrdersLast7Days();
+
+    ProductPurchaseStatsListResponse getProductPurchaseStats();
 }

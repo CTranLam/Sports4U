@@ -26,5 +26,6 @@ public class ProductAdminDTO {
     private Long quantity;
 
     private Boolean inStock;
+    private Boolean isPopular;
 }
 

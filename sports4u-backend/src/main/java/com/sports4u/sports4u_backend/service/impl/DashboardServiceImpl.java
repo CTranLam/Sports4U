@@ -1,6 +1,7 @@
 package com.sports4u.sports4u_backend.service.impl;
 
 import com.sports4u.sports4u_backend.dto.admindto.*;
+import com.sports4u.sports4u_backend.repository.OrderDetailRepository;
 import com.sports4u.sports4u_backend.repository.OrderRepository;
 import com.sports4u.sports4u_backend.repository.ProductRepository;
 import com.sports4u.sports4u_backend.repository.UserRepository;
@@ -20,9 +21,10 @@ public class DashboardServiceImpl implements IDashboardService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
+    private final OrderDetailRepository orderDetailRepository;
 
     @Override
-    @Cacheable(value = "dashboardSummary", key = "'summary'") // key là tên duy nhất hoặc có thể dùng tham số
+    @Cacheable(value = "dashboardSummary", key = "'summary'")
     public DashboardSummaryDTO getSummary() {
         System.out.println("Fetching dashboard summary from database");
         return DashboardSummaryDTO.builder()
@@ -33,7 +35,6 @@ public class DashboardServiceImpl implements IDashboardService {
     }
 
     @Override
-    @Cacheable(value = "revenueByMonth", key = "#year")
     public RevenueByMonthListResponse getRevenueByMonth(int year) {
         System.out.println("Fetching revenue by month from database for year: " + year);
         List<RevenueByMonthDTO> revenues = orderRepository.getRevenueByMonth(year);
@@ -43,7 +44,6 @@ public class DashboardServiceImpl implements IDashboardService {
     }
 
     @Override
-    @Cacheable(value = "productByCategory", key = "'all'")
     public ProductCategoryStatsListResponse getProductByCategory() {
         System.out.println("Fetching product by category stats from database");
         List<ProductCategoryStatsDTO> stats = productRepository.countProductByCategory()
@@ -59,7 +59,6 @@ public class DashboardServiceImpl implements IDashboardService {
     }
 
     @Override
-    @Cacheable(value = "ordersLast7Days", key = "'last7days'")
     public OrdersLast7DaysListResponse getOrdersLast7Days() {
         System.out.println("Fetching orders last 7 days from database");
         LocalDateTime startDate = LocalDateTime.now().minusDays(7);
@@ -72,6 +71,22 @@ public class DashboardServiceImpl implements IDashboardService {
                 .toList();
         return OrdersLast7DaysListResponse.builder()
                 .orders(orders)
+                .build();
+    }
+
+    @Override
+    public ProductPurchaseStatsListResponse getProductPurchaseStats() {
+        System.out.println("Fetching product purchase stats from database");
+        List<ProductPurchaseStatsDTO> stats = orderDetailRepository.getProductPurchaseStats()
+                .stream()
+                .map(row -> ProductPurchaseStatsDTO.builder()
+                        .productId(((Number) row[0]).longValue())
+                        .productName((String) row[1])
+                        .totalQuantitySold(((Number) row[2]).longValue())
+                        .build())
+                .toList();
+        return ProductPurchaseStatsListResponse.builder()
+                .stats(stats)
                 .build();
     }
 }

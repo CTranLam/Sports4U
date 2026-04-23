@@ -46,4 +46,8 @@ public class ProductEntity {
 
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted = false;
+
+    @Column(name = "is_popular", nullable = false)
+    private Boolean isPopular = false;
+
 }

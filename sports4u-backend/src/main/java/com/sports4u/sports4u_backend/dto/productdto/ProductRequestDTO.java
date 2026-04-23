@@ -20,5 +20,6 @@ public class ProductRequestDTO {
     private String origin;
     private String advantages;
     private Long stockQuantity;
+    private Boolean isPopular;
 }
 

@@ -408,7 +408,7 @@ public class OrderServiceImpl implements IOrderService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"dashboardSummary", "ordersLast7Days"}, allEntries = true)
+    @CacheEvict(value = {"dashboardSummary", "ordersLast7Days", "productPurchaseStats"}, allEntries = true)
     public void cancelOrder(Long orderId, String email) {
         System.out.println("Cancelling order and clearing dashboard cache");
         Long userId = userRepository.findByEmail(email)

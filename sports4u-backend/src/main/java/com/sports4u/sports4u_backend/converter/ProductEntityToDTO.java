@@ -21,6 +21,7 @@ public class ProductEntityToDTO {
                 .advantages(product.getAdvantages())
                 .quantity(product.getStockQuantity())
                 .inStock(product.getStockQuantity() > 0)
+                .isPopular(product.getIsPopular())
                 .build();
     }
 
@@ -39,6 +40,7 @@ public class ProductEntityToDTO {
                 .advantages(product.getAdvantages())
                 .quantity(product.getStockQuantity())
                 .inStock(product.getStockQuantity() > 0)
+                .isPopular(product.getIsPopular())
                 .build();
     }
 

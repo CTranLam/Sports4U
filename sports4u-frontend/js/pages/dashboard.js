@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         loadRevenueChart(currentYear),
         loadCategoryChart(),
         loadOrdersLast7Days(),
+        loadProductPurchaseStats(),
     ]);
 
     document.getElementById("yearSelect").addEventListener("change", async function () {
@@ -151,5 +152,52 @@ async function loadOrdersLast7Days() {
         });
     } catch (e) {
         console.error("loadOrdersLast7Days:", e);
+    }
+}
+
+async function loadProductPurchaseStats() {
+    const tbody = document.getElementById("productPurchaseStatsBody");
+    if (!tbody) return;
+
+    try {
+        const data = await apiFetch("/dashboard/product-purchase-stats");
+        const rawList = Array.isArray(data?.stats)
+            ? data.stats
+            : (Array.isArray(data) ? data : []);
+
+        const stats = rawList
+            .map(item => {
+                const quantity = Number(
+                    item.totalQuantitySold
+                    ?? item.quantitySold
+                    ?? item.totalQuantity
+                    ?? item.quantity
+                    ?? item.count
+                    ?? 0
+                );
+
+                return {
+                    productId: item.productId,
+                    productName: item.productName || item.name || `Sản phẩm #${item.productId ?? "?"}`,
+                    quantity: Number.isNaN(quantity) ? 0 : quantity,
+                };
+            })
+            .sort((a, b) => b.quantity - a.quantity);
+
+        if (stats.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4">Chưa có dữ liệu mua hàng</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = stats.map((item, idx) => `
+            <tr>
+                <td>${idx + 1}</td>
+                <td class="fw-semibold">${item.productName}</td>
+                <td class="text-end">${new Intl.NumberFormat("vi-VN").format(item.quantity)}</td>
+            </tr>
+        `).join("");
+    } catch (e) {
+        console.error("loadProductPurchaseStats:", e);
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4">Không tải được thống kê sản phẩm đã mua</td></tr>`;
     }
 }
