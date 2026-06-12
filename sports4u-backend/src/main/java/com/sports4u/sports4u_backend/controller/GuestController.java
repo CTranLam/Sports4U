@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -61,10 +62,14 @@ public class GuestController {
 
     @GetMapping("/categories/{id}/products")
     public ResponseEntity<ResponseDTO<PageResponse<?>>> getProductsByCategoryId(@PathVariable Long id,
+                                                     @RequestParam(required = false) BigDecimal minPrice,
+                                                     @RequestParam(required = false) BigDecimal maxPrice,
+                                                     @RequestParam(required = false) Boolean inStock,
+                                                     @RequestParam(required = false) String sortBy,
                                                      @RequestParam(defaultValue = "1") int page,
                                                      @RequestParam(defaultValue = "12") int size) {
         try {
-            PageResponse<?> products = productService.getProductsByCategory(id, page, size);
+            PageResponse<?> products = productService.getProductsByCategory(id, minPrice, maxPrice, inStock, sortBy, page, size);
             return ResponseEntity.ok(
                     new ResponseDTO<>("Lấy danh sách sản phẩm thành công", products)
             );
@@ -106,11 +111,15 @@ public class GuestController {
     @GetMapping("/products/search")
     public ResponseEntity<ResponseDTO<PageResponse<?>>> searchProducts(
             @RequestParam String keyword,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) Boolean inStock,
+            @RequestParam(required = false) String sortBy,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "12") int size) {
         try {
             return ResponseEntity.ok(
-                    new ResponseDTO<>("Tìm kiếm sản phẩm thành công", productService.searchProducts(keyword, page, size))
+                    new ResponseDTO<>("Tìm kiếm sản phẩm thành công", productService.searchProducts(keyword, minPrice, maxPrice, inStock, sortBy, page, size))
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

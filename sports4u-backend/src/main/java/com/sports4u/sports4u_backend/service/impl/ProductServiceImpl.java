@@ -38,25 +38,33 @@ public class ProductServiceImpl implements IProductService {
 
 
     @Override
-    @Cacheable(value = "productList", key = "#categoryId + '-' + #page + '-' + #size")
-    public PageResponse<ProductDTO> getProductsByCategory(Long categoryId, int page, int size) {
-        System.out.println("Fetching products from database for category: " + categoryId + ", page: " + page);
-        Pageable pageable = PageRequest.of(
-                page - 1,
-                size,
-                Sort.by("productId").descending()
-        );
+    @Cacheable(
+        value = "productList",
+        key = "#categoryId + '-' + (#minPrice != null ? #minPrice : 'null') + '-' + (#maxPrice != null ? #maxPrice : 'null') + '-' + (#inStock != null ? #inStock : 'null') + '-' + (#sortBy != null ? #sortBy : 'null') + '-' + #page + '-' + #size"
+    )
+    public PageResponse<ProductDTO> getProductsByCategory(Long categoryId, BigDecimal minPrice, BigDecimal maxPrice,
+                                                         Boolean inStock, String sortBy, int page, int size) {
+        System.out.println("Fetching products from database for category: " + categoryId + ", filters: minPrice=" + minPrice + ", maxPrice=" + maxPrice + ", inStock=" + inStock + ", sortBy=" + sortBy + ", page: " + page);
+        
+        Sort sort = Sort.by("productId").descending();
+        if ("price-asc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("price").ascending();
+        } else if ("price-desc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("price").descending();
+        } else if ("name-asc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("productName").ascending();
+        }
+        
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
 
-        Page<ProductEntity> productPage =
-                productRepository.findByCategoryEntity_CategoryIdAndIsDeletedFalse(
-                        categoryId, pageable
-                );
+        Page<ProductEntity> productPage = productRepository.findAllWithFilters(
+                null, categoryId, inStock, null, minPrice, maxPrice, pageable
+        );
 
         List<ProductDTO> products = productPage.getContent()
                 .stream()
                 .map(ProductEntityToDTO::convertToProductDTO)
                 .toList();
-
 
         return PageResponse.<ProductDTO>builder()
                 .content(products)
@@ -245,10 +253,25 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
-    public PageResponse<ProductDTO> searchProducts(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("productId").descending());
-        Page<ProductEntity> productPage =
-                productRepository.findByProductNameContainingIgnoreCaseAndIsDeletedFalse(keyword, pageable);
+    public PageResponse<ProductDTO> searchProducts(String keyword, BigDecimal minPrice, BigDecimal maxPrice,
+                                                   Boolean inStock, String sortBy, int page, int size) {
+        System.out.println("Searching products from database with keyword: " + keyword + ", filters: minPrice=" + minPrice + ", maxPrice=" + maxPrice + ", inStock=" + inStock + ", sortBy=" + sortBy + ", page: " + page);
+        
+        Sort sort = Sort.by("productId").descending();
+        if ("price-asc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("price").ascending();
+        } else if ("price-desc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("price").descending();
+        } else if ("name-asc".equalsIgnoreCase(sortBy)) {
+            sort = Sort.by("productName").ascending();
+        }
+        
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+
+        String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
+        Page<ProductEntity> productPage = productRepository.findAllWithFilters(
+                kw, null, inStock, null, minPrice, maxPrice, pageable
+        );
 
         List<ProductDTO> products = productPage.getContent()
                 .stream()

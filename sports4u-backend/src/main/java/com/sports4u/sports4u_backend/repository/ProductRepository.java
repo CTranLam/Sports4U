@@ -33,32 +33,18 @@ public interface ProductRepository extends JpaRepository<ProductEntity,Long> {
 
     Page<ProductEntity> findByProductNameContainingIgnoreCaseAndIsDeletedFalse(String keyword, Pageable pageable);
 
-    @Query(value = """
-        SELECT * FROM products p
-        WHERE p.is_deleted = false
-          AND (CAST(:keyword AS text) IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%')))
-          AND (CAST(:categoryId AS bigint) IS NULL OR p.category_id = CAST(:categoryId AS bigint))
-          AND (CAST(:inStock AS boolean) IS NULL
-               OR (CAST(:inStock AS boolean) = true AND p.stock_quantity > 0)
-               OR (CAST(:inStock AS boolean) = false AND p.stock_quantity = 0))
-          AND (CAST(:isPopular AS boolean) IS NULL OR p.is_popular = CAST(:isPopular AS boolean))
-          AND (CAST(:minPrice AS numeric) IS NULL OR p.price >= CAST(:minPrice AS numeric))
-          AND (CAST(:maxPrice AS numeric) IS NULL OR p.price <= CAST(:maxPrice AS numeric))
-        ORDER BY p.product_id DESC
-    """,
-    countQuery = """
-        SELECT COUNT(*) FROM products p
-        WHERE p.is_deleted = false
-          AND (CAST(:keyword AS text) IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%')))
-          AND (CAST(:categoryId AS bigint) IS NULL OR p.category_id = CAST(:categoryId AS bigint))
-          AND (CAST(:inStock AS boolean) IS NULL
-               OR (CAST(:inStock AS boolean) = true AND p.stock_quantity > 0)
-               OR (CAST(:inStock AS boolean) = false AND p.stock_quantity = 0))
-          AND (CAST(:isPopular AS boolean) IS NULL OR p.is_popular = CAST(:isPopular AS boolean))
-          AND (CAST(:minPrice AS numeric) IS NULL OR p.price >= CAST(:minPrice AS numeric))
-          AND (CAST(:maxPrice AS numeric) IS NULL OR p.price <= CAST(:maxPrice AS numeric))
-    """,
-    nativeQuery = true)
+    @Query("""
+        SELECT p FROM ProductEntity p
+        WHERE p.isDeleted = false
+          AND (:keyword IS NULL OR :keyword = '' OR LOWER(p.productName) LIKE LOWER(CONCAT('%', :keyword, '%')))
+          AND (:categoryId IS NULL OR p.categoryEntity.categoryId = :categoryId)
+          AND (:inStock IS NULL
+               OR (:inStock = true AND p.stockQuantity > 0)
+               OR (:inStock = false AND p.stockQuantity = 0))
+          AND (:isPopular IS NULL OR p.isPopular = :isPopular)
+          AND (:minPrice IS NULL OR p.price >= :minPrice)
+          AND (:maxPrice IS NULL OR p.price <= :maxPrice)
+    """)
     Page<ProductEntity> findAllWithFilters(
             @Param("keyword") String keyword,
             @Param("categoryId") Long categoryId,
