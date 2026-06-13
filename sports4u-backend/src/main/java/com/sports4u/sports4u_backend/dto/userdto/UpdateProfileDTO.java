@@ -1,7 +1,6 @@
 package com.sports4u.sports4u_backend.dto.userdto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,11 +16,11 @@ public class UpdateProfileDTO {
     @NotBlank(message = "Phone is required")
     private String phone;
 
-    @NotNull(message = "Province is required")
-    private Long provinceCode;
+    @NotBlank(message = "Province is required")
+    private String provinceCode;
 
-    @NotNull(message = "Ward is required")
-    private Long wardCode;
+    @NotBlank(message = "Ward is required")
+    private String wardCode;
 
     @NotBlank(message = "Address detail is required")
     @Size(max = 255)

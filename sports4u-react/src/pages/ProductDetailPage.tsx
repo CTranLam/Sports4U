@@ -50,6 +50,12 @@ export default function ProductDetailPage() {
   };
 
   const handleBuyNow = () => {
+    if (!isAuthenticated) {
+      alert('Vui lòng đăng nhập để tiến hành mua hàng');
+      navigate('/login');
+      return;
+    }
+
     if (!product) return;
 
     const buyNowItem = {

@@ -48,7 +48,7 @@ public class PaymentServiceImpl implements IPaymentService {
 
             params.put("vnp_CurrCode", "VND");
             params.put("vnp_TxnRef", order.getOrderId().toString());
-            params.put("vnp_OrderInfo", "Thanh toan don hang " + order.getOrderId());
+            params.put("vnp_OrderInfo", "Thanh_toan_don_hang_" + order.getOrderId());
             params.put("vnp_OrderType", "other");
             params.put("vnp_Locale", "vn");
             params.put("vnp_ReturnUrl", vnPayConfig.getReturnUrl());
@@ -143,7 +143,7 @@ public class PaymentServiceImpl implements IPaymentService {
         return params.entrySet().stream()
                 .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
                 .sorted(Map.Entry.comparingByKey())
-                .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+                .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8).replace("+", "%20"))
                 .collect(Collectors.joining("&"));
     }
 
@@ -176,6 +176,9 @@ public class PaymentServiceImpl implements IPaymentService {
         String ipAddress = request.getHeader("X-FORWARDED-FOR");
         if (ipAddress == null || ipAddress.isEmpty()) {
             ipAddress = request.getRemoteAddr();
+        }
+        if ("0:0:0:0:0:0:0:1".equals(ipAddress) || "::1".equals(ipAddress)) {
+            ipAddress = "127.0.0.1";
         }
         return ipAddress;
     }

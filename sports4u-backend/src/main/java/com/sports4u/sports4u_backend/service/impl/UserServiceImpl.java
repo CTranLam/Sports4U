@@ -3,9 +3,7 @@ package com.sports4u.sports4u_backend.service.impl;
 import com.sports4u.sports4u_backend.converter.ConvertCartItem;
 import com.sports4u.sports4u_backend.converter.UserEntityToDTO;
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemDTO;
-import com.sports4u.sports4u_backend.dto.cartdto.CartItemIdsRequestDTO;
 import com.sports4u.sports4u_backend.dto.cartdto.CartItemResponseDTO;
-import com.sports4u.sports4u_backend.dto.orderdto.OrderPreviewResponseDTO;
 import com.sports4u.sports4u_backend.dto.userdto.*;
 import com.sports4u.sports4u_backend.entity.*;
 import com.sports4u.sports4u_backend.enums.OtpStatus;
@@ -211,10 +209,10 @@ public class UserServiceImpl implements IUserService {
         if (request.getPhone() == null || request.getPhone().isBlank()) {
             throw new IllegalArgumentException("Số điện thoại không được để trống");
         }
-        if (request.getProvinceCode() == null) {
+        if (request.getProvinceCode() == null || request.getProvinceCode().isBlank()) {
             throw new IllegalArgumentException("Tỉnh/thành phố không được để trống");
         }
-        if (request.getWardCode() == null) {
+        if (request.getWardCode() == null || request.getWardCode().isBlank()) {
             throw new IllegalArgumentException("Phường/xã không được để trống");
         }
 
@@ -358,13 +356,15 @@ public class UserServiceImpl implements IUserService {
 
     @Transactional
     @Override
-    public void removeItemFromCart(String email, Long productId) throws NoSuchElementException {
+    public void removeItemFromCart(String email, Long cartItemId) throws NoSuchElementException {
         UserEntity userEntity = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("Tài khoản không tồn tại"));
 
-        CartItemEntity cartItemEntity = cartItemRepository.findByUser_UserIdAndProduct_ProductId(userEntity.getUserId(), productId);
-        if (cartItemEntity == null) {
-            throw new NoSuchElementException("Sản phẩm không tồn tại trong giỏ hàng");
+        CartItemEntity cartItemEntity = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new NoSuchElementException("Sản phẩm không tồn tại trong giỏ hàng"));
+
+        if (!cartItemEntity.getUser().getUserId().equals(userEntity.getUserId())) {
+            throw new NoSuchElementException("Sản phẩm không có trong giỏ hàng của người dùng");
         }
         cartItemRepository.delete(cartItemEntity);
     }
@@ -374,16 +374,18 @@ public class UserServiceImpl implements IUserService {
         UserEntity userEntity = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("Tài khoản không tồn tại"));
 
-        List<CartItemEntity> cartItemEntities = cartItemRepository.findByUser_UserId(userEntity.getUserId());
+        List<CartItemEntity> cartItemEntities = cartItemRepository.findByUser_UserIdOrderByCartItemIdAsc(userEntity.getUserId());
 
         return cartItemEntities.stream()
                 .map(cartItemEntity -> {
                     CartItemResponseDTO cartItemResponseDTO = new CartItemResponseDTO();
+                    cartItemResponseDTO.setCartItemId(cartItemEntity.getCartItemId());
                     cartItemResponseDTO.setProductId(cartItemEntity.getProduct().getProductId());
                     cartItemResponseDTO.setProductName(cartItemEntity.getProduct().getProductName());
                     cartItemResponseDTO.setImageUrl(cartItemEntity.getProduct().getImageUrl());
                     cartItemResponseDTO.setQuantity(cartItemEntity.getQuantity());
                     cartItemResponseDTO.setPrice(cartItemEntity.getPriceAtAdded());
+                    cartItemResponseDTO.setSelected(cartItemEntity.getSelected());
                     return cartItemResponseDTO;
                 })
                 .toList();
@@ -402,12 +404,21 @@ public class UserServiceImpl implements IUserService {
             throw new NoSuchElementException("Sản phẩm không có trong giỏ hàng của người dùng");
         }
 
-        ProductEntity productEntity = productRepository.findById(cartItemDTO.getProductId())
-                .orElseThrow(() -> new NoSuchElementException("Sản phẩm không tồn tại"));
+        if (cartItemDTO.getProductId() != null) {
+            ProductEntity productEntity = productRepository.findById(cartItemDTO.getProductId())
+                    .orElseThrow(() -> new NoSuchElementException("Sản phẩm không tồn tại"));
+            cartItemEntity.setProduct(productEntity);
+            cartItemEntity.setPriceAtAdded(productEntity.getPrice());
+        }
 
-        cartItemEntity.setProduct(productEntity);
-        cartItemEntity.setQuantity(cartItemDTO.getQuantity());
-        cartItemEntity.setPriceAtAdded(productEntity.getPrice());
+        if (cartItemDTO.getQuantity() != null) {
+            cartItemEntity.setQuantity(cartItemDTO.getQuantity());
+        }
+
+        if (cartItemDTO.getSelected() != null) {
+            cartItemEntity.setSelected(cartItemDTO.getSelected());
+        }
+
         cartItemRepository.save(cartItemEntity);
     }
 

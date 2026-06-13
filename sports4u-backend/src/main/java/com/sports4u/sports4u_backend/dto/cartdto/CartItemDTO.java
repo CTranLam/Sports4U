@@ -13,4 +13,5 @@ public class CartItemDTO {
 
     private Long productId;
     private Long quantity;
+    private Boolean selected;
 }

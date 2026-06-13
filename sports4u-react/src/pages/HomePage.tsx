@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useParentCategories, useCategoryChild } from '../hooks/useProductApi';
 import HeroBanner from './home/HeroBanner';
 import PopularSection from './home/PopularSection';
@@ -8,6 +9,15 @@ import { Skeleton } from '../components/ui/skeleton';
 import { ListFilter } from 'lucide-react';
 
 export default function HomePage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      alert('Thanh toán qua VNPay thành công! Cảm ơn quý khách đã mua sắm tại Sports4U.');
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   const { data: parentRes, isLoading: isLoadingParents, isError: isErrorParents } = useParentCategories();
   const parents = parentRes?.data?.categories || [];
 

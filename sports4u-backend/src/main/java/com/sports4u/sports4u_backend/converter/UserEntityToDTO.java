@@ -25,10 +25,12 @@ public class UserEntityToDTO {
 
         if (userEntity.getProvince() != null) {
             userResponseDTO.setProvinceName(userEntity.getProvince().getName());
+            userResponseDTO.setProvinceCode(userEntity.getProvince().getCode());
         }
 
         if (userEntity.getWard() != null) {
             userResponseDTO.setWardName(userEntity.getWard().getName());
+            userResponseDTO.setWardCode(userEntity.getWard().getCode());
         }
         return userResponseDTO;
     }

@@ -9,6 +9,9 @@ import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import HomePage from './pages/HomePage';
 import ProductListPage from './pages/ProductListPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import CartPage from './pages/CartPage';
+import ProfilePage from './pages/ProfilePage';
+import DeliveryPage from './pages/DeliveryPage';
 
 function App() {
   return (
@@ -29,9 +32,9 @@ function App() {
             <Route path="/search" element={<ProductListPage />} />
             <Route path="/products/:id" element={<ProductDetailPage />} />
             
-            {/* Placeholder routes for future implementation */}
-            <Route path="/cart" element={<div className="container mx-auto p-8 text-center text-slate-500">Giỏ hàng (Đang phát triển)</div>} />
-            <Route path="/profile" element={<div className="container mx-auto p-8 text-center text-slate-500">Thông tin cá nhân (Đang phát triển)</div>} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/delivery" element={<DeliveryPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/orders" element={<div className="container mx-auto p-8 text-center text-slate-500">Đơn hàng (Đang phát triển)</div>} />
             <Route path="*" element={<div className="container mx-auto p-8 text-center text-slate-500">Không tìm thấy trang (404)</div>} />
           </Routes>

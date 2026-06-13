@@ -15,6 +15,8 @@ public class UserResponseDTO {
     private String role;
     private Long status;
     private String provinceName;
+    private String provinceCode;
     private String wardName;
+    private String wardCode;
     private String detailAddress;
 }

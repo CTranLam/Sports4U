@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface WardRepository extends JpaRepository<WardEntity,Long> {
+public interface WardRepository extends JpaRepository<WardEntity, String> {
     List<WardEntity> findByProvince_CodeOrderByNameAsc(String provinceCode);
 }

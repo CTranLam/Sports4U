@@ -25,7 +25,7 @@ public interface IUserService {
     void unlockAccount(Long userId) throws IllegalArgumentException;
     PageResponse<UserResponseDTO> getAccounts(Long status, Role role, int page, int size) throws NoSuchElementException;
     void addItemToCart(String email, CartItemDTO cartItemDTO) throws NoSuchElementException;
-    void removeItemFromCart(String email, Long productId) throws NoSuchElementException;
+    void removeItemFromCart(String email, Long cartItemId) throws NoSuchElementException;
     List<CartItemResponseDTO> getCartItems(String email) throws NoSuchElementException;
     void updateItemCart(String email, CartItemDTO cartItemDTO, Long itemId) throws NoSuchElementException;
     Long getCartItemCount(String email) throws NoSuchElementException;

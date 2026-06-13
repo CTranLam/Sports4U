@@ -246,7 +246,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("cart/items/{itemId}")
+    @PutMapping("/cart/items/{itemId}")
     public ResponseEntity<ResponseDTO<String>> updateCartItem(@PathVariable Long itemId,
                                             @RequestBody CartItemDTO cartItemDTO,
                                             Principal principal) {

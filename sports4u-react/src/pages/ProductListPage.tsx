@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useCategoryProducts, useSearchProducts } from '../hooks/useProductApi';
 import ProductCard from '../components/common/ProductCard';
 import ProductSkeleton from '../components/common/ProductSkeleton';
@@ -15,7 +15,7 @@ import {
 
 export default function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const categoryId = searchParams.get('category');
+  const { id: categoryId } = useParams<{ id: string }>();
   const categoryName = searchParams.get('name') || 'Sản phẩm';
   const keyword = searchParams.get('q') || searchParams.get('keyword') || '';
   

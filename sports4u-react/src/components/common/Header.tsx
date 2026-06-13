@@ -71,7 +71,7 @@ export default function Header() {
           <div className="flex items-center gap-4">
             <Link to="/cart" className="relative p-2.5 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all">
               <ShoppingCart size={28} />
-              {cartCount !== undefined && cartCount > 0 && (
+              {cartCount !== undefined && cartCount !== null && cartCount > 0 && (
                 <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                   {cartCount}
                 </span>

@@ -118,12 +118,12 @@ public class UserOrderController {
             String responseCode = params.get("vnp_ResponseCode");
 
             if ("00".equals(responseCode)) {
-                httpResponse.sendRedirect("http://localhost:5500/index.html?success=true");
+                httpResponse.sendRedirect("http://localhost:5173/?success=true");
             } else {
-                httpResponse.sendRedirect("http://localhost:5500/pages/checkout.html?error=" + responseCode);
+                httpResponse.sendRedirect("http://localhost:5173/delivery?error=" + responseCode);
             }
         } catch (Exception ex) {
-            httpResponse.sendRedirect("http://localhost:5500/pages/checkout.html?error=exception");
+            httpResponse.sendRedirect("http://localhost:5173/delivery?error=exception");
         }
     }
 
