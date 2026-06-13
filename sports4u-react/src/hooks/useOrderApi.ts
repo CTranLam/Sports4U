@@ -55,3 +55,39 @@ export const useVnPayUrlMutation = () => {
     },
   });
 };
+
+export const useMyOrdersQuery = (page: number, size: number, status?: string) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  return useQuery({
+    queryKey: ['myOrders', page, size, status],
+    queryFn: async () => {
+      const response = await orderService.getMyOrders(page, size, status);
+      return response.data;
+    },
+    enabled: isAuthenticated,
+  });
+};
+
+export const useOrderDetailQuery = (orderId: number | undefined, enabled: boolean) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  return useQuery({
+    queryKey: ['orderDetail', orderId],
+    queryFn: async () => {
+      if (!orderId) throw new Error('Order ID is required');
+      const response = await orderService.getOrderDetail(orderId);
+      return response.data;
+    },
+    enabled: isAuthenticated && enabled && !!orderId,
+  });
+};
+
+export const useCancelOrderMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: number) => orderService.cancelOrder(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderDetail'] });
+    },
+  });
+};

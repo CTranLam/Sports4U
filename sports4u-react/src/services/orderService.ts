@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import type { ResponseDTO } from '../types/api';
+import type { ResponseDTO, OrderSummaryDTO, OrderDetailDTO, PageResponse } from '../types/api';
 
 export interface OrderPreviewResponseDTO {
   productId: number;
@@ -48,5 +48,21 @@ export const orderService = {
 
   createVnPayUrl: async (orderId: number): Promise<ResponseDTO<Map<string, string>>> => {
     return apiClient.get(`/user/order/payment/vnpay/${orderId}`);
+  },
+
+  getMyOrders: async (page = 1, size = 10, status?: string): Promise<ResponseDTO<PageResponse<OrderSummaryDTO>>> => {
+    const params = new URLSearchParams();
+    params.append('page', String(page));
+    params.append('size', String(size));
+    if (status) params.append('status', status);
+    return apiClient.get(`/user/orders?${params.toString()}`);
+  },
+
+  getOrderDetail: async (orderId: number): Promise<ResponseDTO<OrderDetailDTO>> => {
+    return apiClient.get(`/user/orders/${orderId}`);
+  },
+
+  cancelOrder: async (orderId: number): Promise<ResponseDTO<string>> => {
+    return apiClient.put(`/user/orders/${orderId}/cancel`);
   },
 };

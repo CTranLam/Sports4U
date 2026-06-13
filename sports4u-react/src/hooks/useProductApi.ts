@@ -70,3 +70,11 @@ export const useSearchProducts = (
     enabled: keyword.trim().length > 0,
   });
 };
+
+export const useRelatedProducts = (productId: number | undefined) => {
+  return useQuery({
+    queryKey: ['products', productId, 'related'],
+    queryFn: () => productService.getRelatedProducts(productId!),
+    enabled: typeof productId === 'number',
+  });
+};

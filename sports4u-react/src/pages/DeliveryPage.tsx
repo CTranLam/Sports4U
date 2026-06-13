@@ -155,12 +155,18 @@ export default function DeliveryPage() {
           quantity: buyNowItem.quantity,
           paymentMethod: paymentMethod,
         });
+        if (!response.data) {
+          throw new Error('Không nhận được dữ liệu đơn hàng từ hệ thống.');
+        }
         orderId = response.data.orderId;
       } else {
         const response = await checkoutFromCartMutation.mutateAsync({
           cartItemIds: selectedCartItems,
           paymentMethod: paymentMethod,
         });
+        if (!response.data) {
+          throw new Error('Không nhận được dữ liệu đơn hàng từ hệ thống.');
+        }
         orderId = response.data.orderId;
       }
 

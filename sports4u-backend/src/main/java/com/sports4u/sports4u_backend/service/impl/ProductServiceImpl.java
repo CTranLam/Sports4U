@@ -310,4 +310,33 @@ public class ProductServiceImpl implements IProductService {
                 .build();
     }
 
+    @Override
+    public List<ProductDTO> getRelatedProducts(Long id) throws IllegalArgumentException {
+        System.out.println("Fetching related products from database for product ID: " + id);
+        ProductEntity current = productRepository.findByProductIdAndIsDeletedFalse(id);
+        if (current == null) {
+            throw new IllegalArgumentException("Sản phẩm không tồn tại");
+        }
+        Long categoryId = current.getCategoryEntity().getCategoryId();
+        List<ProductEntity> relatedEntities = new java.util.ArrayList<>(productRepository
+                .findTop6ByCategoryEntity_CategoryIdAndProductIdNotAndIsDeletedFalse(categoryId, id));
+
+        // Fallback: If less than 4 related products, add other active products
+        if (relatedEntities.size() < 4) {
+            List<ProductEntity> fallbackEntities = productRepository.findTop6ByProductIdNotAndIsDeletedFalse(id);
+            for (ProductEntity fallback : fallbackEntities) {
+                if (relatedEntities.size() >= 6) {
+                    break;
+                }
+                if (!relatedEntities.contains(fallback)) {
+                    relatedEntities.add(fallback);
+                }
+            }
+        }
+
+        return relatedEntities.stream()
+                .map(ProductEntityToDTO::convertToProductDTO)
+                .toList();
+    }
+
 }

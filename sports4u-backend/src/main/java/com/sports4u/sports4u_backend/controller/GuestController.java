@@ -3,8 +3,11 @@ package com.sports4u.sports4u_backend.controller;
 import com.sports4u.sports4u_backend.dto.categorydto.CategoryDTO;
 import com.sports4u.sports4u_backend.dto.categorydto.CategoryListResponse;
 import com.sports4u.sports4u_backend.dto.productdto.ProductDTO;
+import com.sports4u.sports4u_backend.dto.reviewdto.ProductRatingSummaryDTO;
+import com.sports4u.sports4u_backend.dto.reviewdto.ReviewDTO;
 import com.sports4u.sports4u_backend.service.ICategoryService;
 import com.sports4u.sports4u_backend.service.IProductService;
+import com.sports4u.sports4u_backend.service.IReviewService;
 import com.sports4u.sports4u_backend.utils.PageResponse;
 import com.sports4u.sports4u_backend.utils.ResponseDTO;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +25,7 @@ public class GuestController {
 
     private final ICategoryService categoryService;
     private final IProductService productService;
+    private final IReviewService reviewService;
 
     @GetMapping("/categories/parents")
     public ResponseEntity<ResponseDTO<CategoryListResponse>> getAllCategoriesParentForHome() {
@@ -120,6 +124,45 @@ public class GuestController {
         try {
             return ResponseEntity.ok(
                     new ResponseDTO<>("Tìm kiếm sản phẩm thành công", productService.searchProducts(keyword, minPrice, maxPrice, inStock, sortBy, page, size))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseDTO<>(e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/products/{id}/related")
+    public ResponseEntity<ResponseDTO<List<ProductDTO>>> getRelatedProducts(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy danh sách sản phẩm liên quan thành công", productService.getRelatedProducts(id))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseDTO<>(e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/products/{id}/reviews")
+    public ResponseEntity<ResponseDTO<PageResponse<ReviewDTO>>> getReviewsByProduct(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        try {
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy danh sách đánh giá thành công", reviewService.getReviewsByProduct(id, page, size))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseDTO<>(e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/products/{id}/rating-summary")
+    public ResponseEntity<ResponseDTO<ProductRatingSummaryDTO>> getRatingSummary(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy thông tin tổng hợp đánh giá thành công", reviewService.getRatingSummary(id))
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

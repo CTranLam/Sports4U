@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -49,5 +50,15 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     Page<OrderEntity> findByPaymentStatus(PaymentStatus paymentStatus, Pageable pageable);
 
     Page<OrderEntity> findByStatusAndPaymentStatus(OrderStatus status, PaymentStatus paymentStatus, Pageable pageable);
+
+    @Query("""
+        SELECT COUNT(o) > 0 
+        FROM OrderEntity o 
+        JOIN o.orderDetails od 
+        WHERE o.user.userId = :userId 
+          AND od.productId = :productId 
+          AND o.status = com.sports4u.sports4u_backend.enums.OrderStatus.COMPLETED
+    """)
+    boolean hasCompletedOrderWithProduct(@Param("userId") Long userId, @Param("productId") Long productId);
 }
 

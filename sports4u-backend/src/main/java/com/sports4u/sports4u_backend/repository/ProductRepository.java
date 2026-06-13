@@ -59,4 +59,8 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
 
     Page<ProductEntity> findByCategoryEntity_parent_CategoryIdAndIsPopularTrueAndIsDeletedFalse(Long CategoryId,
             Pageable pageable);
+
+    List<ProductEntity> findTop6ByCategoryEntity_CategoryIdAndProductIdNotAndIsDeletedFalse(Long categoryId, Long productId);
+
+    List<ProductEntity> findTop6ByProductIdNotAndIsDeletedFalse(Long productId);
 }

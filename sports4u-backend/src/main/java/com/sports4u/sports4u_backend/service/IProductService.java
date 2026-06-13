@@ -7,6 +7,7 @@ import com.sports4u.sports4u_backend.utils.PageResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface IProductService {
     PageResponse<ProductDTO> getProductsByCategory(Long id, BigDecimal minPrice, BigDecimal maxPrice, Boolean inStock, String sortBy, int page, int size) throws IllegalArgumentException;
@@ -21,4 +22,5 @@ public interface IProductService {
     ProductDTO getProductById(Long id) throws IllegalArgumentException;
     PageResponse<ProductDTO> searchProducts(String keyword, BigDecimal minPrice, BigDecimal maxPrice, Boolean inStock, String sortBy, int page, int size);
     PageResponse<ProductDTO> getProductsPopularByCategory(Long categoryId, int page, int size) throws IllegalArgumentException;
+    List<ProductDTO> getRelatedProducts(Long id) throws IllegalArgumentException;
 }

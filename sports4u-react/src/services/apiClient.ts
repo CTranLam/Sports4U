@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/useAuthStore';
 
-// Cấu hình Base URL mặc định
-const API_BASE_URL = 'http://localhost:8080/api';
+// Cấu hình Base URL từ biến môi trường (xem .env)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

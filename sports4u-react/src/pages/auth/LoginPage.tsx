@@ -51,7 +51,11 @@ export default function LoginPage() {
           },
           response.data.token
         );
-        navigate('/');
+        if (response.data.role === 'ROLE_ADMIN') {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/');
+        }
       }
     } catch (err: unknown) {
       if (err instanceof Error) {

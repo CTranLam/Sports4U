@@ -76,4 +76,9 @@ export const productService = {
       },
     });
   },
+
+  // Lấy sản phẩm liên quan
+  getRelatedProducts: async (productId: number): Promise<ResponseDTO<ProductDTO[]>> => {
+    return await apiClient.get(`/products/${productId}/related`);
+  },
 };
