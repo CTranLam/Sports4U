@@ -1,0 +1,43 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [main, "Dev/**"]
+    paths:
+      - "sports4u-react/**"
+      - ".github/workflows/frontend-ci.yml"
+  pull_request:
+    branches: [main, "Dev/**"]
+    paths:
+      - "sports4u-react/**"
+      - ".github/workflows/frontend-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: sports4u-react/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: sports4u-react
+
+      - name: Run linter
+        run: npm run lint
+        working-directory: sports4u-react
+
+      - name: Build production bundle
+        run: npm run build
+        working-directory: sports4u-react
+        env:
+          VITE_API_BASE_URL: /api

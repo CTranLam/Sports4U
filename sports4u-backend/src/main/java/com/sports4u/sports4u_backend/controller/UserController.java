@@ -10,9 +10,18 @@ import com.sports4u.sports4u_backend.service.IOrderService;
 import com.sports4u.sports4u_backend.service.IUserService;
 import com.sports4u.sports4u_backend.service.IReviewService;
 import com.sports4u.sports4u_backend.utils.ResponseDTO;
+import com.sports4u.sports4u_backend.entity.RefreshTokenEntity;
+import com.sports4u.sports4u_backend.entity.UserEntity;
+import com.sports4u.sports4u_backend.service.IRefreshTokenService;
+import com.sports4u.sports4u_backend.utils.JwtTokenUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -23,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
@@ -35,6 +45,10 @@ public class UserController {
     private final IOrderService orderService;
 
     private final IReviewService reviewService;
+
+    private final IRefreshTokenService refreshTokenService;
+
+    private final JwtTokenUtil jwtTokenUtil;
 
     @PostMapping("/register")
     public ResponseEntity<ResponseDTO<?>> registerUser(@RequestBody UserRegisterDTO userRegisterDTO,
@@ -63,7 +77,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ResponseDTO<?>> login(@Valid @RequestBody UserLoginDTO userDTO, BindingResult result) {
+    public ResponseEntity<ResponseDTO<?>> login(@Valid @RequestBody UserLoginDTO userDTO, BindingResult result, HttpServletResponse httpServletResponse) {
         if (result.hasErrors()) {
             List<String> errors = result.getFieldErrors()
                     .stream()
@@ -84,8 +98,14 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new ResponseDTO<>("Sai mật khẩu", null));
             }
+
+            // Generate Refresh Token
+            RefreshTokenEntity refreshTokenEntity = refreshTokenService.createRefreshToken(userDTO.getUserName());
+            setRefreshTokenCookie(httpServletResponse, refreshTokenEntity.getToken());
+
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
+            response.put("refreshToken", refreshTokenEntity.getToken());
             response.put("email", userResponseDTO.getUserName());
             response.put("id", userResponseDTO.getUserId());
             response.put("role", userResponseDTO.getRole());
@@ -301,10 +321,105 @@ public class UserController {
         try {
             return ResponseEntity.ok(
                     new ResponseDTO<>("Gửi đánh giá sản phẩm thành công",
-                            reviewService.createReview(principal.getName(), request)));
+                             reviewService.createReview(principal.getName(), request)));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ResponseDTO<>(e.getMessage(), null));
         }
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ResponseDTO<?>> refreshToken(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @RequestBody(required = false) Map<String, String> body) {
+        
+        String refreshToken = null;
+        
+        // 1. Try to get from cookies
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        
+        // 2. Try to get from body
+        if ((refreshToken == null || refreshToken.isEmpty()) && body != null) {
+            refreshToken = body.get("refreshToken");
+        }
+
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ResponseDTO<>("Không tìm thấy Refresh Token", null));
+        }
+
+        try {
+            Optional<RefreshTokenEntity> tokenOpt = refreshTokenService.findByToken(refreshToken);
+            if (tokenOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new ResponseDTO<>("Refresh Token không hợp lệ hoặc đã bị thu hồi", null));
+            }
+
+            RefreshTokenEntity tokenEntity = tokenOpt.get();
+            refreshTokenService.verifyExpiration(tokenEntity);
+            
+            UserEntity user = tokenEntity.getUser();
+            String newAccessToken = jwtTokenUtil.generateToken(user);
+            
+            // Rotate the Refresh Token
+            RefreshTokenEntity rotatedRefreshToken = refreshTokenService.createRefreshToken(user.getEmail());
+            setRefreshTokenCookie(response, rotatedRefreshToken.getToken());
+            
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("token", newAccessToken);
+            responseData.put("refreshToken", rotatedRefreshToken.getToken());
+            
+            return ResponseEntity.ok(
+                    new ResponseDTO<>("Lấy Access Token mới thành công", responseData));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ResponseDTO<>(e.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ResponseDTO<?>> logout(HttpServletRequest request, HttpServletResponse response) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    String token = cookie.getValue();
+                    refreshTokenService.deleteByToken(token);
+                    break;
+                }
+            }
+        }
+        
+        // Clear cookie
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(false) // Set to true in prod with HTTPS
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        
+        return ResponseEntity.ok(new ResponseDTO<>("Đăng xuất thành công", null));
+    }
+
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(false) // Set to true in prod with HTTPS
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60) // 7 days in seconds
+                .sameSite("Lax")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }

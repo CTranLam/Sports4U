@@ -80,6 +80,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 Pair.of("/api/user/verify-otp", "POST"),
                 Pair.of("/api/user/reset-password", "POST"),
                 Pair.of("/api/user/resend-otp", "POST"),
+                Pair.of("/api/user/refresh-token", "POST"),
+                Pair.of("/api/user/logout", "POST"),
                 Pair.of("/api/categories/**", "GET"),
                 Pair.of("/api/products/**", "GET")
         );

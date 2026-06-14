@@ -205,4 +205,4 @@ Khi chọn thanh toán qua VNPay, hệ thống sẽ sinh URL thanh toán NCB San
 
 ## Tác giả & Đóng góp
 - Phát triển bởi **CTRANLAM**.
-- Phục dựng và tái cấu trúc sang React Feature-first bởi **Antigravity AI Assistant**.
+

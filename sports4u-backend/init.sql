@@ -939,6 +939,32 @@ ALTER TABLE ONLY public.orders
 
 
 --
+-- Name: refresh_tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.refresh_tokens (
+    id bigint NOT NULL,
+    token character varying(255) NOT NULL,
+    user_id bigint NOT NULL,
+    expiry_date timestamp with time zone NOT NULL,
+    revoked boolean NOT NULL DEFAULT false,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE SEQUENCE public.refresh_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.refresh_tokens_id_seq OWNED BY public.refresh_tokens.id;
+ALTER TABLE ONLY public.refresh_tokens ALTER COLUMN id SET DEFAULT nextval('public.refresh_tokens_id_seq'::regclass);
+ALTER TABLE ONLY public.refresh_tokens ADD CONSTRAINT refresh_tokens_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.refresh_tokens ADD CONSTRAINT refresh_tokens_token_key UNIQUE (token);
+ALTER TABLE ONLY public.refresh_tokens ADD CONSTRAINT fk_refresh_tokens_user FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
+
+--
 -- PostgreSQL database dump complete
 --
 

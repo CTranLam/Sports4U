@@ -18,7 +18,7 @@ import java.util.function.Function;
 
 @Component
 public class JwtTokenUtil {
-    private int expiration = 2592000;
+    private int expiration = 900;
     private String secretKey = "TaqlmGv1iEDMRiFp/pHuID1+T84IABfuA0xXh4GhiUI=";
 //    signature = HMACSHA256(
 //            base64UrlEncode(header) + "." + base64UrlEncode(payload),
