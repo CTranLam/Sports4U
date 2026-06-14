@@ -3,11 +3,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useResetPasswordMutation } from '../../hooks/useAuthApi';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../../components/ui/card';
+import { useResetPasswordMutation } from '@/features/auth/hooks/useAuthApi';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 
 const resetSchema = z.object({
   password: z.string().min(6, { message: 'Mật khẩu phải có ít nhất 6 ký tự' }),

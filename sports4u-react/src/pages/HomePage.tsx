@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useParentCategories, useCategoryChild } from '../hooks/useProductApi';
-import HeroBanner from './home/HeroBanner';
-import PopularSection from './home/PopularSection';
-import CategorySection from './home/CategorySection';
-import { Button } from '../components/ui/button';
-import { Skeleton } from '../components/ui/skeleton';
+import { useParentCategories, useCategoryChild } from '@/features/products/hooks/useProductApi';
+import { HeroBanner, PopularSection, CategorySection } from '@/features/products/components';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ListFilter } from 'lucide-react';
 
 export default function HomePage() {

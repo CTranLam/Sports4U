@@ -4,10 +4,11 @@ import {
   useCreateProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
-} from '../../hooks/useAdminApi';
-import apiClient from '../../services/apiClient';
+} from '@/features/admin/hooks/useAdminApi';
+import apiClient from '@/services/apiClient';
 import { Plus, Edit2, Trash2, X, Filter, RefreshCw, Star } from 'lucide-react';
-import type { CategoryDTO, ProductAdminDTO } from '../../types/api';
+import type { ProductAdminDTO } from '@/features/admin/types';
+import type { CategoryDTO } from '@/features/products/types';
 
 export default function AllProductsPage() {
   const [page, setPage] = useState(1);

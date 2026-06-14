@@ -4,10 +4,10 @@ import {
   useCreateCategoryMutation,
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
-} from '../../hooks/useAdminApi';
-import apiClient from '../../services/apiClient';
+} from '@/features/admin/hooks/useAdminApi';
+import apiClient from '@/services/apiClient';
 import { Folder, FolderOpen, Tag, Plus, Edit2, Trash2, X, Search, ChevronRight, ChevronDown } from 'lucide-react';
-import type { CategoryDTO } from '../../types/api';
+import type { CategoryDTO } from '@/features/products/types';
 
 export default function CategoryManagementPage() {
   const [page, setPage] = useState(1);

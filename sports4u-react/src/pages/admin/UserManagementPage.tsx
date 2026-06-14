@@ -5,9 +5,9 @@ import {
   useUpdateAccountMutation,
   useLockAccountMutation,
   useUnlockAccountMutation,
-} from '../../hooks/useAdminApi';
+} from '@/features/admin/hooks/useAdminApi';
 import { ShieldAlert, Plus, Edit2, Lock, Unlock, X } from 'lucide-react';
-import type { UserAdminDTO } from '../../types/api';
+import type { UserAdminDTO } from '@/features/admin/types';
 
 export default function UserManagementPage() {
   const [page, setPage] = useState(1);

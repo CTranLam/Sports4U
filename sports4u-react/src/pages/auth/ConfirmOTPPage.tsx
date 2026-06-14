@@ -3,11 +3,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useVerifyOtpMutation, useResendOtpMutation } from '../../hooks/useAuthApi';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../../components/ui/card';
+import { useVerifyOtpMutation, useResendOtpMutation } from '@/features/auth/hooks/useAuthApi';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 
 const otpSchema = z.object({
   otp: z.string().length(6, { message: 'Mã OTP phải bao gồm 6 chữ số' }),

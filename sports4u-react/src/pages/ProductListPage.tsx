@@ -1,17 +1,17 @@
 import { useParams, useSearchParams } from 'react-router-dom';
-import { useCategoryProducts, useSearchProducts } from '../hooks/useProductApi';
-import ProductCard from '../components/common/ProductCard';
-import ProductSkeleton from '../components/common/ProductSkeleton';
-import PaginationHelper from '../components/common/PaginationHelper';
+import { useCategoryProducts, useSearchProducts } from '@/features/products/hooks/useProductApi';
+import ProductCard from '@/features/products/components/ProductCard';
+import ProductSkeleton from '@/components/shared/ProductSkeleton';
+import PaginationHelper from '@/components/shared/PaginationHelper';
 import { useState, useEffect } from 'react';
 import { SlidersHorizontal, ArrowUpDown } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 
 export default function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams();

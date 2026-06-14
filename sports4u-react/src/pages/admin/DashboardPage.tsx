@@ -5,7 +5,7 @@ import {
   useProductByCategory,
   useOrdersLast7Days,
   useProductPurchaseStats,
-} from '../../hooks/useAdminApi';
+} from '@/features/admin/hooks/useAdminApi';
 import { Users, Package, FileText, Calendar, TrendingUp } from 'lucide-react';
 
 export default function DashboardPage() {

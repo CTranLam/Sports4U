@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   useAdminOrders,
   useUpdateOrderStatusMutation,
-} from '../../hooks/useAdminApi';
+} from '@/features/admin/hooks/useAdminApi';
 
 
 const STATUS_MAP: Record<string, { label: string; class: string }> = {

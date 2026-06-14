@@ -25,10 +25,16 @@ public class RateLimitLoginService {
         System.out.println("Attempts: " + attempts);
         if (attempts != null && attempts > MAX_ATTEMPT) {
             accountLockService.lockAccount(email);
+            // FIX: xóa key ngay sau khi khóa tài khoản để tránh counter stale
+            resetAttempts(email);
         }
     }
 
     public void loginSucceeded(String email) {
+        resetAttempts(email);
+    }
+
+    public void resetAttempts(String email) {
         String key = "login:fail:" + email;
         redisTemplate.delete(key);
     }

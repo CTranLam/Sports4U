@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useProductDetail, useRelatedProducts } from '../hooks/useProductApi';
-import { useAddToCartMutation } from '../hooks/useCartApi';
-import { useAuthStore } from '../store/useAuthStore';
-import ProductGallery from './detail/ProductGallery';
-import ProductSpecs from './detail/ProductSpecs';
-import ProductActions from './detail/ProductActions';
-import { Skeleton } from '../components/ui/skeleton';
+import { useProductDetail, useRelatedProducts } from '@/features/products/hooks/useProductApi';
+import { useAddToCartMutation } from '@/features/cart/hooks/useCartApi';
+import { useAuthStore } from '@/store/useAuthStore';
+import { ProductGallery, ProductSpecs, ProductActions } from '@/features/products/components';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronRight, Home, ShieldCheck, Truck, RotateCcw, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import ProductCard from '../components/common/ProductCard';
-import ProductSkeleton from '../components/common/ProductSkeleton';
-import { useReviews, useRatingSummary, useCreateReviewMutation } from '../hooks/useReviewApi';
+import ProductCard from '@/features/products/components/ProductCard';
+import ProductSkeleton from '@/components/shared/ProductSkeleton';
+import { useReviews, useRatingSummary, useCreateReviewMutation } from '@/features/products/hooks/useReviewApi';
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();

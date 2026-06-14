@@ -1,12 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/useAuthStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import {
   useCart,
   useUpdateCartItemMutation,
   useRemoveFromCartMutation,
-} from '../hooks/useCartApi';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Lock, Loader2 } from 'lucide-react';
-import { Button } from '../components/ui/button';
+} from '@/features/cart/hooks/useCartApi';
+import { ShoppingBag, ArrowRight, Lock, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CartItem, CartSummary } from '@/features/cart/components';
 
 export default function CartPage() {
   const navigate = useNavigate();
@@ -15,13 +16,6 @@ export default function CartPage() {
   const { data: cartItems = [], isLoading, isError } = useCart();
   const updateCartItemMutation = useUpdateCartItemMutation();
   const removeFromCartMutation = useRemoveFromCartMutation();
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(price);
-  };
 
   const handleQuantityChange = (
     cartItemId: number,
@@ -146,6 +140,13 @@ export default function CartPage() {
     );
   }
 
+  const handleCheckout = () => {
+    const productIds = selectedItems.map((item) => item.productId);
+    sessionStorage.setItem('selectedCartItems', JSON.stringify(productIds));
+    sessionStorage.removeItem('buyNowItem');
+    navigate('/delivery');
+  };
+
   return (
     <div className="container mx-auto px-4 py-10">
       <div className="mb-8">
@@ -175,91 +176,15 @@ export default function CartPage() {
           <div className="border border-slate-100 bg-white rounded-2xl overflow-hidden shadow-sm">
             <div className="divide-y divide-slate-100">
               {cartItems.map((item) => (
-                <div key={item.cartItemId} className="p-6 flex flex-col sm:flex-row items-center gap-6">
-                  {/* Selection Checkbox */}
-                  <div className="shrink-0">
-                    <input
-                      type="checkbox"
-                      checked={item.selected}
-                      onChange={() => handleToggleSelect(item.cartItemId, item.selected)}
-                      className="h-5 w-5 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer accent-slate-950"
-                    />
-                  </div>
-
-                  {/* Product Image */}
-                  <div className="h-24 w-24 rounded-xl border border-slate-100 overflow-hidden shrink-0 bg-slate-50">
-                    <img
-                      src={item.imageUrl || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff'}
-                      alt={item.productName}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-
-                  {/* Product Details */}
-                  <div className="flex-1 min-w-0 text-center sm:text-left">
-                    <h3 className="font-bold text-slate-800 text-lg hover:text-slate-900 transition-colors truncate">
-                      <Link to={`/products/${item.productId}`}>{item.productName}</Link>
-                    </h3>
-                    <p className="text-slate-500 font-semibold mt-1">
-                      {formatPrice(item.price)}
-                    </p>
-                  </div>
-
-                  {/* Quantity controls & Actions */}
-                  <div className="flex flex-col sm:flex-row items-center gap-6 w-full sm:w-auto">
-                    {/* Quantity Selector */}
-                    <div className="flex items-center border border-slate-200 rounded-lg h-9 overflow-hidden bg-slate-50">
-                      <button
-                        onClick={() =>
-                          handleQuantityChange(
-                            item.cartItemId,
-                            item.productId,
-                            item.quantity,
-                            -1
-                          )
-                        }
-                        disabled={item.quantity <= 1 || updateCartItemMutation.isPending}
-                        className="px-3 text-slate-500 hover:bg-slate-100 hover:text-slate-800 h-full flex items-center transition-colors disabled:opacity-50"
-                      >
-                        <Minus size={14} />
-                      </button>
-                      <span className="w-12 text-center text-sm font-bold text-slate-700">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          handleQuantityChange(
-                            item.cartItemId,
-                            item.productId,
-                            item.quantity,
-                            1
-                          )
-                        }
-                        disabled={updateCartItemMutation.isPending}
-                        className="px-3 text-slate-500 hover:bg-slate-100 hover:text-slate-800 h-full flex items-center transition-colors disabled:opacity-50"
-                      >
-                        <Plus size={14} />
-                      </button>
-                    </div>
-
-                    {/* Item Total Price */}
-                    <div className="w-28 text-right hidden sm:block">
-                      <p className="font-extrabold text-slate-900 text-base">
-                        {formatPrice(item.price * item.quantity)}
-                      </p>
-                    </div>
-
-                    {/* Delete Action */}
-                    <button
-                      onClick={() => handleRemoveItem(item.cartItemId)}
-                      disabled={removeFromCartMutation.isPending}
-                      className="text-red-500 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors disabled:opacity-50"
-                      title="Xóa khỏi giỏ hàng"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
+                <CartItem
+                  key={item.cartItemId}
+                  item={item}
+                  onQuantityChange={handleQuantityChange}
+                  onToggleSelect={handleToggleSelect}
+                  onRemove={handleRemoveItem}
+                  isUpdating={updateCartItemMutation.isPending}
+                  isRemoving={removeFromCartMutation.isPending}
+                />
               ))}
             </div>
           </div>
@@ -267,47 +192,14 @@ export default function CartPage() {
 
         {/* Order Summary */}
         <div className="lg:col-span-4">
-          <div className="border border-slate-100 bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-900 mb-6 border-b pb-4">Tóm tắt đơn hàng</h2>
-
-            <div className="space-y-4 mb-6">
-              <div className="flex justify-between text-slate-600 font-medium">
-                <span>Tạm tính ({selectedItems.length} sản phẩm)</span>
-                <span className="text-slate-900 font-semibold">{formatPrice(subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-slate-600 font-medium">
-                <span>Phí vận chuyển</span>
-                <span className="text-slate-900 font-semibold">
-                  {shippingFee === 0 ? 'Miễn phí' : formatPrice(shippingFee)}
-                </span>
-              </div>
-              {shippingFee > 0 && (
-                <p className="text-xs text-green-600 font-semibold mt-1">
-                  💡 Mua thêm {formatPrice(1000000 - subtotal)} để được miễn phí vận chuyển!
-                </p>
-              )}
-            </div>
-
-            <div className="border-t pt-4 mb-8 flex justify-between items-baseline">
-              <span className="text-lg font-bold text-slate-950">Tổng thanh toán</span>
-              <span className="text-2xl font-black text-slate-900">
-                {formatPrice(total)}
-              </span>
-            </div>
-
-            <Button
-              onClick={() => {
-                const productIds = selectedItems.map((item) => item.productId);
-                sessionStorage.setItem('selectedCartItems', JSON.stringify(productIds));
-                sessionStorage.removeItem('buyNowItem');
-                navigate('/delivery');
-              }}
-              disabled={selectedItems.length === 0}
-              className="w-full bg-slate-950 hover:bg-slate-900 text-white py-6 rounded-xl font-bold text-base shadow-lg transition-all disabled:opacity-50"
-            >
-              Thanh toán ngay ({selectedItems.length})
-            </Button>
-          </div>
+          <CartSummary
+            selectedCount={selectedItems.length}
+            subtotal={subtotal}
+            shippingFee={shippingFee}
+            total={total}
+            onCheckout={handleCheckout}
+            disabled={selectedItems.length === 0}
+          />
         </div>
       </div>
     </div>

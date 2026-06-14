@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/useAuthStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import {
   LayoutDashboard,
   Users,
@@ -8,7 +8,7 @@ import {
   FileText,
   LogOut,
 } from 'lucide-react';
-import LogoImage from '../../assets/logo.png';
+import LogoImage from '@/assets/logo.png';
 
 export default function AdminLayout() {
   const { logout, user } = useAuthStore();

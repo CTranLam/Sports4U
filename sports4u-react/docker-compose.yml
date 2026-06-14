@@ -7,7 +7,13 @@ services:
     build:
       context: .
       args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8080/api}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "3000:80"
+    networks:
+      - sports4u-backend_app-network
+
+networks:
+  sports4u-backend_app-network:
+    external: true   # Dùng lại network đã tạo bởi sports4u-backend compose

@@ -1,28 +1,28 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
-import ConfirmOTPPage from './pages/auth/ConfirmOTPPage';
-import ResetPasswordPage from './pages/auth/ResetPasswordPage';
-import HomePage from './pages/HomePage';
-import ProductListPage from './pages/ProductListPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import CartPage from './pages/CartPage';
-import ProfilePage from './pages/ProfilePage';
-import DeliveryPage from './pages/DeliveryPage';
-import OrdersPage from './pages/OrdersPage';
+import LoginPage from '@/pages/auth/LoginPage';
+import RegisterPage from '@/pages/auth/RegisterPage';
+import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
+import ConfirmOTPPage from '@/pages/auth/ConfirmOTPPage';
+import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
+import HomePage from '@/pages/HomePage';
+import ProductListPage from '@/pages/ProductListPage';
+import ProductDetailPage from '@/pages/ProductDetailPage';
+import CartPage from '@/pages/CartPage';
+import ProfilePage from '@/pages/ProfilePage';
+import DeliveryPage from '@/pages/DeliveryPage';
+import OrdersPage from '@/pages/OrdersPage';
 
 // Layouts & Protection
-import UserLayout from './components/layout/UserLayout';
-import AdminLayout from './components/layout/AdminLayout';
-import ProtectedRoute from './components/common/ProtectedRoute';
+import UserLayout from '@/components/layout/UserLayout';
+import AdminLayout from '@/components/layout/AdminLayout';
+import ProtectedRoute from '@/components/shared/ProtectedRoute';
 
 // Admin Pages
-import DashboardPage from './pages/admin/DashboardPage';
-import UserManagementPage from './pages/admin/UserManagementPage';
-import CategoryManagementPage from './pages/admin/CategoryManagementPage';
-import AllProductsPage from './pages/admin/AllProductsPage';
-import OrderManagementPage from './pages/admin/OrderManagementPage';
+import DashboardPage from '@/pages/admin/DashboardPage';
+import UserManagementPage from '@/pages/admin/UserManagementPage';
+import CategoryManagementPage from '@/pages/admin/CategoryManagementPage';
+import AllProductsPage from '@/pages/admin/AllProductsPage';
+import OrderManagementPage from '@/pages/admin/OrderManagementPage';
 
 function App() {
   return (

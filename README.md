@@ -1,545 +1,208 @@
 # Sports4U - E-Commerce Platform
 
 <p align="center">
-  <img src="sports4u-frontend/assets/banner-img.png" alt="Sports4U Banner" width="100%">
+  <img src="sports4u-react/src/assets/logo.png" alt="Sports4U Banner" width="200px">
 </p>
 
 ## Giới thiệu
 
-**Sports4U** là một nền tảng thương mại điện tử chuyên về các sản phẩm thể thao như Pickleball, Badminton, Basketball, Tennis. Hệ thống được xây dựng với kiến trúc tách biệt Frontend và Backend, đảm bảo khả năng mở rộng và bảo trì dễ dàng.
+**Sports4U** là một nền tảng thương mại điện tử chuyên nghiệp cung cấp các trang thiết bị và trang phục thể thao chính hãng (Pickleball, Tennis, Badminton, Basketball). Dự án được thiết kế theo mô hình tách biệt Frontend và Backend (Decoupled Architecture) với các công nghệ hiện đại, đảm bảo tính mở rộng, bảo mật cao và hiệu suất tối ưu.
 
 ### Điểm nổi bật
-- **Kiến trúc Microservices-ready**: Tách biệt FE/BE, dễ scale
-- **Message Queue**: Xử lý email bất đồng bộ với RabbitMQ + Dead Letter Queue
-- **Redis Caching**: Cache dữ liệu với TTL, rate limiting login, account lock
-- **Payment Gateway**: Tích hợp VNPay Sandbox cho thanh toán online
-- **Cloud Storage**: Upload ảnh lên Cloudinary
-
-## Kiến trúc hệ thống
-
-```
-Sports4U/
-├── sports4u-backend/          # Spring Boot REST API
-│   ├── src/main/java/
-│   │   └── com/sports4u/sports4u_backend/
-│   │       ├── Sports4uBackendApplication.java  # Main class (@EnableScheduling)
-│   │       ├── configuration/     # Cấu hình Security, CORS, RabbitMQ, Cloudinary, Redis, VNPay
-│   │       │   ├── CloudinaryConfig.java        # Cloud image storage
-│   │       │   ├── CorsConfig.java              # CORS policy
-│   │       │   ├── MapperConfiguration.java     # ModelMapper
-│   │       │   ├── RabbitMQConfig.java          # Message queue + DLQ
-│   │       │   ├── RedisCacheConfig.java        # Redis cache manager + TTL config
-│   │       │   ├── SecurityConfig.java          # Auth provider, BCrypt
-│   │       │   ├── VNPayConfig.java             # VNPay payment gateway config
-│   │       │   └── WebSecurityConfig.java       # Filter chain, endpoints
-│   │       ├── controller/        # REST Controllers
-│   │       │   ├── AdminController.java         # Admin APIs
-│   │       │   ├── GuestController.java         # Public APIs
-│   │       │   ├── UserController.java          # User APIs
-│   │       │   └── UserOrderController.java     # Order + Payment APIs
-│   │       ├── converter/         # Entity <-> DTO converters
-│   │       ├── dto/               # Data Transfer Objects
-│   │       │   ├── addressdto/
-│   │       │   ├── admindto/      # Dashboard DTOs
-│   │       │   ├── cartdto/
-│   │       │   ├── categorydto/
-│   │       │   ├── orderdto/
-│   │       │   ├── productdto/
-│   │       │   └── userdto/
-│   │       ├── entity/            # JPA Entities
-│   │       ├── enums/             # Role, OrderStatus, PaymentMethod, PaymentStatus, OtpStatus
-│   │       ├── exception/         # GlobalExceptionHandler, NotFoundException
-│   │       ├── filters/           # JwtTokenFilter
-│   │       ├── repository/        # Spring Data JPA Repositories
-│   │       ├── service/           # Business Logic Services
-│   │       │   ├── impl/          # Service implementations
-│   │       │   │   └── PaymentServiceImpl.java  # VNPay payment processing
-│   │       │   ├── RabbitMQService/
-│   │       │   │   ├── EmailProducerService.java    # Gửi message vào queue
-│   │       │   │   ├── EmailConsumerService.java    # Xử lý gửi email
-│   │       │   │   ├── EmailDLQConsumerService.java # Xử lý email thất bại
-│   │       │   │   └── OtpCleanupService.java       # Scheduled task xóa OTP hết hạn
-│   │       │   └── Redis/
-│   │       │       ├── RateLimitLoginService.java   # Rate limiting login
-│   │       │       └── AccountLockService.java      # Khóa tài khoản tạm thời
-│   │       └── utils/
-│   │           ├── JwtTokenUtil.java    # JWT generation & validation
-│   │           ├── PageResponse.java    # Pagination wrapper
-│   │           └── ResponseDTO.java     # Standard API response
-│   └── src/main/resources/
-│       └── application.properties # Cấu hình ứng dụng
-│
-└── sports4u-frontend/         # Vanilla JavaScript Frontend
-    ├── index.html             # Trang chủ
-    ├── assets/                # Hình ảnh sản phẩm và banner
-    ├── css/
-    │   ├── base.css           # Base styles
-    │   └── layout.css         # Layout & hover effects
-    ├── js/
-    │   ├── api/               # API service calls
-    │   ├── pages/             # Page-specific JavaScript
-    │   └── utils/
-    │       ├── admin-common.js # Admin utilities
-    │       ├── header.js       # Header component
-    │       └── pagination.js   # Pagination utility
-    └── pages/                 # HTML pages
-        ├── admin/             # Admin dashboard pages
-        └── *.html             # User-facing pages
-```
-
-## Công nghệ sử dụng
-
-### Backend
-| Công nghệ | Phiên bản | Mô tả |
-|-----------|-----------|-------|
-| **Java** | 21 | Ngôn ngữ lập trình chính |
-| **Spring Boot** | 3.5.10 | Framework backend |
-| **Spring Security** | - | Xác thực và phân quyền |
-| **Spring Data JPA** | - | ORM và truy vấn database |
-| **PostgreSQL** | - | Cơ sở dữ liệu quan hệ |
-| **Redis** | - | Caching và rate limiting |
-| **RabbitMQ** | - | Message queue cho email async |
-| **JWT (jjwt)** | 0.11.5 | Token-based authentication |
-| **Cloudinary** | 1.39.0 | Cloud image storage |
-| **ModelMapper** | 3.1.1 | Object mapping |
-| **Lombok** | - | Giảm boilerplate code |
-| **Spring Mail** | - | Gửi email SMTP |
-| **Gemini AI** | - | Tích hợp AI (Spring AI) |
-
-### Frontend
-| Công nghệ | Mô tả |
-|-----------|-------|
-| **HTML5** | Cấu trúc trang |
-| **CSS3** | Styling |
-| **Vanilla JavaScript** | Logic phía client |
-| **Bootstrap 5.3.3** | UI Framework |
-| **Bootstrap Icons** | Icon library |
-| **Chart.js** | Biểu đồ dashboard |
-
-## Entities (Database Schema)
-
-| Entity | Mô tả |
-|--------|-------|
-| `UserEntity` | Thông tin người dùng (email, password, role, address) |
-| `ProductEntity` | Sản phẩm (name, price, stock, category, image, `isPopular`) |
-| `CategoryEntity` | Danh mục sản phẩm |
-| `CartItemEntity` | Giỏ hàng của user |
-| `OrderEntity` | Đơn hàng |
-| `OrderDetailEntity` | Chi tiết đơn hàng |
-| `ProvinceEntity` | Tỉnh/Thành phố |
-| `WardEntity` | Phường/Xã |
-| `PasswordResetOTPEntity` | OTP reset mật khẩu |
-
-## Bảo mật
-
-### Authentication & Authorization
-- **JWT Token**: Xác thực stateless với thời hạn 30 ngày
-- **Role-based Access Control**: 
-  - `ROLE_USER`: Người dùng thường
-  - `ROLE_ADMIN`: Quản trị viên
-- **BCrypt**: Mã hóa mật khẩu
-
-### Security Features
-- **Rate Limiting Login**: Giới hạn số lần đăng nhập sai (Redis)
-- **Account Lock**: Tự động khóa tài khoản sau 4 lần đăng nhập sai trong 15 phút
-- **OTP Verification**: Xác thực OTP qua email khi reset mật khẩu
-- **CORS Configuration**: Kiểm soát cross-origin requests
-
-## Redis Caching
-
-Hệ thống sử dụng **Redis** để caching dữ liệu, cải thiện hiệu suất và giảm tải cho database.
-
-### Cấu hình Cache
-Các cache được cấu hình với thời gian sống (TTL) khác nhau tùy theo đặc tính dữ liệu:
-
-| Cache Name | TTL | Mô tả |
-|------------|-----|-------|
-| `productDetail` | 30 phút | Cache chi tiết sản phẩm |
-| `productList` | 30 phút | Cache danh sách sản phẩm |
-| `categoryList` | 30 phút | Cache danh sách danh mục |
-| `dashboardSummary` | 10 phút | Cache tổng quan dashboard |
-| `revenueByMonth` | 10 phút | Cache doanh thu theo tháng |
-| `productByCategory` | 10 phút | Cache số lượng sản phẩm theo danh mục |
-| `ordersLast7Days` | 10 phút | Cache đơn hàng 7 ngày gần nhất |
-| `provinces` | 24 giờ | Cache danh sách tỉnh/thành phố |
-| `wards` | 24 giờ | Cache danh sách phường/xã |
-
-### Cache Configuration (RedisCacheConfig.java)
-```java
-@Configuration
-public class RedisCacheConfig {
-    @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory factory) {
-        // Các cấu hình TTL cho từng loại cache
-        // Product & category: 30 phút
-        // Dashboard: 10 phút
-        // Address: 24 giờ
-    }
-}
-```
-
-### Rate Limiting & Account Lock
-Redis cũng được sử dụng cho:
-- **RateLimitLoginService**: Đếm số lần đăng nhập sai trong khoảng thời gian
-- **AccountLockService**: Khóa tài khoản tạm thời khi đăng nhập sai quá nhiều lần
-
-## Thanh toán VNPay (Sandbox)
-
-Hệ thống tích hợp **VNPay** - cổng thanh toán trực tuyến phổ biến tại Việt Nam. Hiện tại đang sử dụng môi trường **Sandbox** để test.
-
-### Cấu hình VNPay
-```properties
-# application.properties
-vnpay.url=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-vnpay.tmn-code=YOUR_TMN_CODE
-vnpay.hash-secret=YOUR_HASH_SECRET
-vnpay.return-url=http://localhost:8080/api/user/order/payment/vnpay-return
-vnpay.version=2.1.0
-```
-
-### Luồng thanh toán VNPay
-
-```
-┌─────────────┐     1. Tạo URL thanh toán     ┌─────────────┐
-│   Client    │ ────────────────────────────▶ │   Backend   │
-│  (Frontend) │                               │ (Spring Boot)│
-└─────────────┘                               └─────────────┘
-       │                                             │
-       │     2. Redirect đến VNPay Gateway          │
-       ▼                                             │
-┌─────────────┐                                      │
-│   VNPay     │                                      │
-│  Gateway    │                                      │
-│  (Sandbox)  │                                      │
-└─────────────┘                                      │
-       │                                             │
-       │     3. Callback vnpay-return               │
-       └────────────────────────────────────────────▶│
-                                                     │
-       │     4. Verify signature & update order     │
-       │◀────────────────────────────────────────────│
-       ▼
-┌─────────────┐
-│  Hiển thị   │
-│  kết quả    │
-└─────────────┘
-```
-
-### API Endpoints VNPay
-```
-GET /api/user/order/payment/vnpay/{orderId}    # Tạo URL thanh toán VNPay
-GET /api/user/order/payment/vnpay-return       # Callback từ VNPay (public)
-```
-
-### VNPay Response Codes
-| Code | Mô tả |
-|------|-------|
-| `00` | Giao dịch thành công |
-| `07` | Trừ tiền thành công nhưng giao dịch bị nghi ngờ |
-| `09` | Thẻ/Tài khoản chưa đăng ký InternetBanking |
-| `10` | Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần |
-| `11` | Đã hết hạn chờ thanh toán (15 phút) |
-| `12` | Thẻ/Tài khoản bị khóa |
-| `13` | Nhập sai mật khẩu OTP |
-| `24` | Khách hàng hủy giao dịch |
-| `51` | Tài khoản không đủ số dư |
-| `65` | Vượt quá hạn mức giao dịch trong ngày |
-| `75` | Ngân hàng thanh toán đang bảo trì |
-| `79` | Nhập sai mật khẩu thanh toán quá số lần quy định |
-| `99` | Lỗi không xác định |
-
-### Test Cards (Sandbox)
-Sử dụng các thông tin test sau khi thanh toán trên sandbox:
-
-| Ngân hàng | Số thẻ | Tên chủ thẻ | Ngày phát hành | OTP |
-|-----------|--------|-------------|----------------|-----|
-| NCB | 9704198526191432198 | NGUYEN VAN A | 07/15 | 123456 |
-
-## API Endpoints
-
-### Guest APIs (Public)
-```
-GET  /api/categories/parents                 # Danh mục cha (trang chủ)
-GET  /api/categories/{categoryId}/child      # Danh mục con theo danh mục cha
-GET  /api/categories/{categoryId}/children   # Alias danh mục con
-GET  /api/categories/{id}/products           # Lấy sản phẩm theo danh mục
-GET  /api/products/popular/{categoryId}      # Sản phẩm hot theo danh mục cha
-GET  /api/products/search                     # Tìm kiếm sản phẩm
-GET  /api/products/{id}                       # Chi tiết sản phẩm
-```
-
-### User APIs (Authenticated)
-```
-POST /api/user/register                 # Đăng ký tài khoản
-POST /api/user/login                    # Đăng nhập
-POST /api/user/forgot-password          # Quên mật khẩu
-POST /api/user/verify-otp               # Xác thực OTP
-POST /api/user/reset-password           # Đặt lại mật khẩu
-POST /api/user/resend-otp               # Gửi lại OTP
-GET  /api/user/profile                  # Lấy thông tin cá nhân
-PUT  /api/user/profile                  # Cập nhật thông tin
-GET  /api/user/provinces                # Danh sách tỉnh/thành
-GET  /api/user/wards                    # Danh sách phường/xã
-
-# Giỏ hàng
-POST   /api/user/cart/items             # Thêm sản phẩm vào giỏ
-GET    /api/user/cart                   # Lấy giỏ hàng
-PUT    /api/user/cart/items/{itemId}    # Cập nhật số lượng
-DELETE /api/user/cart/items/{itemId}    # Xóa sản phẩm khỏi giỏ
-GET    /api/user/cart/count             # Đếm số sản phẩm trong giỏ
-
-# Đơn hàng của user
-GET    /api/user/orders                 # Danh sách đơn hàng của tôi
-GET    /api/user/orders/{id}            # Chi tiết đơn hàng
-PUT    /api/user/orders/{id}/cancel     # Hủy đơn hàng
-```
-
-### User Order APIs
-```
-POST /api/user/order/cart/list-item     # Lấy items từ giỏ hàng
-POST /api/user/order/checkout/from-cart # Đặt hàng từ giỏ
-POST /api/user/order/preview-from-product # Preview đơn hàng
-POST /api/user/order/checkout/from-product # Mua ngay
-```
-
-### Admin APIs (ROLE_ADMIN)
-```
-# Quản lý tài khoản
-POST   /api/admin/account               # Tạo tài khoản
-PUT    /api/admin/account/{id}          # Cập nhật tài khoản
-DELETE /api/admin/account/{id}          # Khóa tài khoản
-GET    /api/admin/accounts              # Danh sách tài khoản (filter: status, role)
-
-# Quản lý danh mục
-POST   /api/admin/categories            # Tạo danh mục
-GET    /api/admin/categories            # Danh sách danh mục (phân trang)
-DELETE /api/admin/categories/{id}       # Xóa danh mục (soft delete)
-
-# Quản lý sản phẩm
-GET    /api/admin/products              # Danh sách sản phẩm (filter: keyword, categoryId, stockStatus, isPopular, minPrice, maxPrice)
-POST   /api/admin/product               # Tạo sản phẩm (multipart/form-data)
-PUT    /api/admin/products/{id}         # Cập nhật sản phẩm
-DELETE /api/admin/products/{id}         # Xóa sản phẩm (soft delete)
-GET    /api/admin/categories/{id}/products # Sản phẩm theo danh mục
-
-# Quản lý đơn hàng
-GET    /api/admin/orders                # Danh sách đơn hàng (filter: status)
-PUT    /api/admin/orders/{id}/status    # Cập nhật trạng thái
-
-# Dashboard & Thống kê
-GET    /api/admin/dashboard/summary            # Tổng quan (users, products, orders)
-GET    /api/admin/dashboard/revenue-by-month   # Doanh thu theo tháng (?year=2026)
-GET    /api/admin/dashboard/product-by-category # Số lượng sản phẩm theo danh mục
-GET    /api/admin/dashboard/orders-last-7-days # Đơn hàng 7 ngày gần nhất
-GET    /api/admin/dashboard/product-purchase-stats # Thống kê số lượng sản phẩm đã mua
-```
-
-## Cập nhật mới (04/2026)
-
-- Bổ sung cờ `isPopular` cho sản phẩm (Entity/DTO/API), kèm script DB `V001__add_is_popular_column.sql`.
-- Trang chủ có section **Sản phẩm hot** theo từng danh mục cha, có badge `HOT` và phân trang.
-- Admin All Products hỗ trợ:
-  - lọc theo trạng thái hot (`isPopular`)
-  - hiển thị cột trạng thái hot trong bảng
-  - tạo/sửa sản phẩm với trường `Trạng thái hot`
-- Dashboard admin có thêm bảng **Thống kê số lượng sản phẩm đã mua** (xếp hạng theo số lượng).
-- `product-list.html` đã bỏ dữ liệu mẫu tĩnh, ưu tiên render dữ liệu động từ API.
-
-## Tính năng chính
-
-### Người dùng (User)
-- ✅ Đăng ký / Đăng nhập
-- ✅ Quên mật khẩu với OTP qua email
-- ✅ Xem danh sách sản phẩm theo danh mục
-- ✅ Xem danh sách sản phẩm hot theo danh mục (badge HOT, có phân trang)
-- ✅ Xem chi tiết sản phẩm
-- ✅ Thêm sản phẩm vào giỏ hàng
-- ✅ Đặt hàng từ giỏ hàng hoặc mua ngay
-- ✅ Quản lý đơn hàng cá nhân
-- ✅ Cập nhật thông tin cá nhân
-
-### Quản trị viên (Admin)
-- ✅ Dashboard thống kê (doanh thu, đơn hàng, sản phẩm)
-- ✅ Quản lý tài khoản người dùng (CRUD, khóa/mở khóa)
-- ✅ Quản lý danh mục sản phẩm
-- ✅ Quản lý sản phẩm (CRUD, upload ảnh lên Cloudinary)
-- ✅ Gắn nhãn sản phẩm hot và lọc danh sách sản phẩm theo trạng thái hot
-- ✅ Quản lý đơn hàng (xem, cập nhật trạng thái)
-- ✅ Dashboard thống kê thêm số lượng sản phẩm đã mua
-
-### Hệ thống
-- ✅ Gửi email bất đồng bộ qua RabbitMQ
-- ✅ Rate limiting đăng nhập với Redis
-- ✅ Tự động khóa tài khoản khi đăng nhập sai nhiều lần
-- ✅ Scheduled tasks (OTP cleanup)
-- ✅ Tích hợp AI (Gemini) cho các tính năng thông minh
-
-## Hướng dẫn cài đặt
-
-### Yêu cầu hệ thống
-- **Java 21+**
-- **Maven 3.8+**
-- **PostgreSQL 14+**
-- **Redis 7+**
-- **RabbitMQ 3.12+**
-
-### 1. Clone repository
-```bash
-git clone <repository-url>
-cd Sports4U
-```
-
-### 2. Cấu hình Database
-Tạo database PostgreSQL:
-```sql
-CREATE DATABASE sports4u;
-```
-
-Chạy thêm script migration cho cột `is_popular` (nếu DB hiện tại chưa có):
-```bash
-psql -U your_username -d sports4u -f sports4u-backend/src/main/resources/migration/V001__add_is_popular_column.sql
-```
-
-### 3. Cấu hình Backend
-Chỉnh sửa file `sports4u-backend/src/main/resources/application.properties`:
-
-```properties
-# Database
-spring.datasource.url=jdbc:postgresql://localhost:5432/sports4u
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-
-# Redis
-spring.data.redis.host=localhost
-spring.data.redis.port=6379
-
-# RabbitMQ
-spring.rabbitmq.host=localhost
-spring.rabbitmq.port=5672
-spring.rabbitmq.username=guest
-spring.rabbitmq.password=guest
-
-# Mail (Gmail SMTP)
-spring.mail.username=your_email@gmail.com
-spring.mail.password=your_app_password
-
-# Gemini AI (optional)
-spring.ai.open-ai.api-key=${GEMINI_KEY}
-```
-
-### 4. Khởi động Backend
-```bash
-cd sports4u-backend
-./mvnw spring-boot:run
-```
-Backend sẽ chạy tại: `http://localhost:8080`
-
-### 5. Khởi động Frontend
-Sử dụng Live Server hoặc bất kỳ HTTP server nào:
-```bash
-cd sports4u-frontend
-# Sử dụng VS Code Live Server hoặc
-npx serve .
-```
-
-## Trạng thái đơn hàng (Order Status)
-
-| Status | Mô tả |
-|--------|-------|
-| `PENDING` | Chờ xác nhận |
-| `CONFIRMED` | Đã xác nhận |
-| `SHIPPING` | Đang giao hàng |
-| `COMPLETED` | Hoàn thành |
-| `CANCELLED` | Đã hủy |
-
-## Phương thức thanh toán
-
-| Method | Mô tả |
-|--------|-------|
-| `COD` | Thanh toán khi nhận hàng |
-| `VNPAY` | Thanh toán qua VNPay |
-
-## Trạng thái thanh toán (Payment Status)
-
-| Status | Mô tả |
-|--------|-------|
-| `PENDING` | Chờ thanh toán |
-| `PAID` | Đã thanh toán |
-| `FAILED` | Thanh toán thất bại |
-
-## 🔧 Cấu trúc Response API
-
-```json
-{
-  "message": "Thông báo kết quả",
-  "data": {
-    // Dữ liệu trả về
-  }
-}
-```
-
-### Pagination Response
-```json
-{
-  "message": "Lấy danh sách thành công",
-  "data": {
-    "content": [...],
-    "page": 1,
-    "size": 10,
-    "totalElements": 100,
-    "totalPages": 10
-  }
-}
-```
-
-## Cấu trúc thư mục Frontend
-
-```
-sports4u-frontend/
-├── index.html                 # Trang chủ
-├── pages/
-│   ├── login.html             # Đăng nhập
-│   ├── register.html          # Đăng ký
-│   ├── forgot.html            # Quên mật khẩu
-│   ├── confirm-otp.html       # Xác nhận OTP
-│   ├── reset-password.html    # Đặt lại mật khẩu
-│   ├── product-list.html      # Danh sách sản phẩm
-│   ├── product-detail.html    # Chi tiết sản phẩm
-│   ├── cart.html              # Giỏ hàng
-│   ├── delivery.html          # Thông tin giao hàng
-│   ├── orders.html            # Đơn hàng của tôi
-│   ├── profile.html           # Thông tin cá nhân
-│   └── admin/
-│       ├── dashboard.html     # Trang quản trị
-│       ├── users.html         # Quản lý tài khoản
-│       ├── product-category.html # Quản lý danh mục
-│       ├── product-list.html  # Quản lý sản phẩm theo danh mục
-│       ├── all-products.html  # Quản lý toàn bộ sản phẩm + bộ lọc nâng cao
-│       └── orders.html        # Quản lý đơn hàng
-├── js/
-│   ├── api/                   # API calls
-│   ├── pages/                 # Page logic
-│   └── utils/                 # Utilities
-├── css/
-│   ├── base.css               # Base styles
-│   └── layout.css             # Layout styles
-└── assets/
-    ├── banner-img.png         # Banner
-    └── products/              # Product images
-```
-
-## Đóng góp
-
-1. Fork repository
-2. Tạo branch mới (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request
-
-## Tác giả
-
-- **CTRANLAM**
+- **Kiến trúc Frontend Hiện đại**: Xây dựng bằng React + Vite + TypeScript, cấu trúc theo **Feature-first Architecture** giúp modular hóa và bảo trì dễ dàng.
+- **Tách nhỏ Fat Pages**: Các trang nghiệp vụ lớn được tối ưu hóa thành các sub-components gọn gàng dưới 100-150 dòng.
+- **Xử lý bất đồng bộ (Message Queue)**: Hệ thống gửi email (xác thực OTP, hóa đơn) chạy bất đồng bộ qua RabbitMQ với Dead Letter Queue (DLQ).
+- **Redis Caching & Security**: Cache dữ liệu với TTL linh hoạt, kết hợp đếm lượt đăng nhập sai (Rate Limiting) và tự động khóa tài khoản tạm thời bằng Redis.
+- **Thanh toán trực tuyến**: Tích hợp cổng thanh toán VNPay Sandbox.
+- **Lưu trữ đám mây**: Upload và tối ưu hóa hình ảnh sản phẩm qua Cloudinary API.
+- **Hỗ trợ Container hóa**: Triển khai nhanh chóng và đồng bộ thông qua Docker Compose.
 
 ---
 
+## Kiến trúc Hệ thống & Cấu trúc Thư mục
 
+### Cấu trúc Frontend (`sports4u-react`)
+```
+sports4u-react/
+├── src/
+│   ├── assets/              # Logo và tài nguyên tĩnh
+│   ├── components/
+│   │   ├── layout/          # Layouts dùng chung (UserLayout, AdminLayout)
+│   │   ├── shared/          # Components chia sẻ giữa các trang (Header, Footer, ProtectedRoute)
+│   │   └── ui/              # Các UI components nền tảng (Button, Card, Input...)
+│   ├── config/              # Biến môi trường (env.ts), Định nghĩa route (routes.ts)
+│   ├── features/            # Modules nghiệp vụ (Feature-first)
+│   │   ├── auth/            # Xác thực người dùng (Login, Register, OTP, Password Reset)
+│   │   ├── products/        # Hiển thị, tìm kiếm, đánh giá và danh mục sản phẩm
+│   │   ├── cart/            # Quản lý giỏ hàng
+│   │   ├── orders/          # Đặt hàng, Xem lịch sử đơn hàng và thanh toán
+│   │   ├── profile/         # Cập nhật thông tin cá nhân
+│   │   └── admin/           # Dashboard quản trị, Quản lý tài khoản, danh mục, sản phẩm & đơn hàng
+│   ├── pages/               # Trang đóng vai trò "Orchestrator" kết nối URL và các components của Feature
+│   ├── services/            # Axios API client dùng chung (`apiClient.ts`)
+│   ├── store/               # Quản lý Global State bằng Zustand (`useAuthStore.ts`)
+│   ├── types/               # Kiểu dữ liệu TypeScript dùng chung
+│   ├── utils/               # Định dạng hiển thị tiền tệ, thời gian (`formatters.ts`)
+│   ├── App.tsx              # Router chính của ứng dụng
+│   └── main.tsx
+```
+
+### Cấu trúc Backend (`sports4u-backend`)
+```
+sports4u-backend/
+├── src/main/java/com/sports4u/sports4u_backend/
+│   ├── configuration/       # Cấu hình Security, CORS, RabbitMQ, Cloudinary, Redis, VNPay
+│   ├── controller/          # REST Controllers (Admin, User, Guest, Payment)
+│   ├── converter/           # Map Entity <-> DTO
+│   ├── dto/                 # Data Transfer Objects cho từng phân vùng nghiệp vụ
+│   ├── entity/              # Thực thể JPA (Database Schema)
+│   ├── enums/               # Các Enum hệ thống (Role, OrderStatus, PaymentMethod...)
+│   ├── exception/           # Xử lý lỗi tập trung (Global Exception Handler)
+│   ├── filters/             # Bộ lọc JWT Security Filter
+│   ├── repository/          # JPA Repositories tương tác CSDL
+│   ├── service/             # Logic nghiệp vụ & Tích hợp dịch vụ (Redis, RabbitMQ, Mail)
+│   └── utils/               # JWT helper, phân trang
+```
+
+---
+
+## Công nghệ Sử dụng
+
+### Frontend (sports4u-react)
+| Công nghệ | Vai trò |
+|-----------|---------|
+| **React 18** | Thư viện xây dựng giao diện |
+| **Vite** | Build tool siêu nhanh cho SPA |
+| **TypeScript** | Định kiểu tĩnh an toàn |
+| **Tailwind CSS** | Styling giao diện linh hoạt |
+| **Zustand** | Quản lý global state (auth, cart) |
+| **TanStack React Query (v5)** | Caching, quản lý trạng thái server và đồng bộ data |
+| **Axios** | HTTP client gọi REST API |
+| **Lucide React** | Thư viện icon hiện đại |
+
+### Backend (sports4u-backend)
+| Công nghệ | Phiên bản | Vai trò |
+|-----------|-----------|---------|
+| **Java** | 21 | Ngôn ngữ lập trình chính |
+| **Spring Boot** | 3.5.10 | Framework backend chính |
+| **Spring Security & JWT** | - | Xác thực stateless và phân quyền người dùng |
+| **Spring Data JPA** | - | Tương tác CSDL PostgreSQL |
+| **PostgreSQL** | 16 | Hệ quản trị CSDL quan hệ |
+| **Redis** | 7 | Caching dữ liệu, Rate Limiting login và khóa tài khoản |
+| **RabbitMQ** | 3 (Management) | Message Queue xử lý gửi email bất đồng bộ |
+| **Cloudinary** | - | Lưu trữ và tối ưu hóa hình ảnh sản phẩm |
+
+---
+
+## Hướng dẫn Khởi chạy & Triển khai
+
+### Cách 1: Triển khai nhanh bằng Docker Compose (Khuyên dùng)
+Docker Compose sẽ tự động xây dựng và liên kết toàn bộ dịch vụ (PostgreSQL, Redis, RabbitMQ, Spring Boot Backend và React Frontend với Nginx).
+
+1. **Khởi động các dịch vụ Backend & Middleware:**
+   ```bash
+   cd sports4u-backend
+   docker compose up -d --build
+   ```
+   *Cơ sở dữ liệu PostgreSQL (cổng `5435`), Redis, RabbitMQ (Management UI tại `http://localhost:15672`) và Spring Boot API (cổng `8080`) sẽ được thiết lập tự động.*
+
+2. **Khởi động Frontend React (Nginx Proxy):**
+   ```bash
+   cd ../sports4u-react
+   docker compose up -d --build
+   ```
+   *Frontend React sẽ được đóng gói bằng Multi-stage build và chạy thông qua Nginx tại địa chỉ `http://localhost:3000`.*
+
+---
+
+### Cách 2: Khởi chạy trong Môi trường Phát triển (Local Development)
+
+#### Yêu cầu hệ thống:
+- Java 21+ & Maven 3.8+
+- Node.js 20+
+- PostgreSQL, Redis, RabbitMQ đang chạy trên máy local.
+
+#### 1. Khởi chạy Backend:
+- Tạo database PostgreSQL: `CREATE DATABASE sports4u;`
+- Tạo tệp `sports4u-backend/.env` từ file mẫu và thiết lập các biến môi trường (Database username/password, Mail SMTP, Cloudinary API Key, VNPay Config).
+- Khởi động ứng dụng Spring Boot:
+  ```bash
+  cd sports4u-backend
+  ./mvnw spring-boot:run
+  ```
+  *API sẽ hoạt động tại: `http://localhost:8080`*
+
+#### 2. Khởi chạy Frontend React:
+- Cài đặt các dependencies:
+  ```bash
+  cd sports4u-react
+  npm install
+  ```
+- Khởi chạy dev server:
+  ```bash
+  npm run dev
+  ```
+  *Ứng dụng client sẽ chạy tại: `http://localhost:5173` (hoặc cổng được Vite cung cấp).*
+
+---
+
+## Chi tiết Cơ chế Nghiệp vụ
+
+### 🔒 Bảo mật & Xác thực
+- **Stateless Authentication**: Sử dụng JWT token đính kèm trong Header `Authorization` (thời hạn 30 ngày).
+- **Phân quyền Role-based**:
+  - `ROLE_USER`: Khách hàng mua sắm, quản lý giỏ hàng và đơn hàng cá nhân.
+  - `ROLE_ADMIN`: Xem dashboard báo cáo, quản lý tài khoản, danh mục, sản phẩm và cập nhật trạng thái đơn hàng.
+- **Khóa tài khoản tự động (Redis)**: Khi người dùng nhập sai mật khẩu quá 5 lần liên tiếp, tài khoản sẽ tự động bị khóa tạm thời trong 15 phút.
+
+### ⚡ Cấu hình Caching (Redis)
+Dữ liệu ít biến động được lưu cache để giảm tải CSDL:
+- `productList`, `productDetail`, `categoryList`: Cache 30 phút.
+- `dashboardSummary`, `revenueByMonth`, `ordersLast7Days`: Cache 10 phút.
+- `provinces`, `wards`: Cache 24 giờ.
+
+### 💳 Thanh toán VNPay Sandbox
+Khi chọn thanh toán qua VNPay, hệ thống sẽ sinh URL thanh toán NCB Sandbox:
+- **NCB Test Card**:
+  - Số thẻ: `9704198526191432198`
+  - Tên chủ thẻ: `NGUYEN VAN A`
+  - Ngày phát hành: `07/15`
+  - OTP: `123456`
+
+---
+
+## Danh sách API Endpoints Chính
+
+### Guest & Public APIs
+- `GET /api/categories/parents` - Danh sách danh mục cha
+- `GET /api/categories/{id}/child` - Danh mục con
+- `GET /api/products/popular/{categoryId}` - Danh sách sản phẩm Hot
+- `GET /api/products/search` - Tìm kiếm sản phẩm (keyword, phân trang)
+- `GET /api/products/{id}` - Chi tiết sản phẩm
+
+### Customer APIs (Yêu cầu Token)
+- `POST /api/user/login` - Đăng nhập nhận JWT
+- `POST /api/user/register` - Đăng ký tài khoản
+- `POST /api/user/forgot-password` - Gửi OTP qua mail reset pass
+- `POST /api/user/verify-otp` - Xác nhận mã OTP
+- `POST /api/user/reset-password` - Cập nhật mật khẩu mới
+- `GET /api/user/profile` - Lấy thông tin cá nhân
+- `GET /api/user/cart` - Lấy thông tin giỏ hàng
+- `POST /api/user/cart/items` - Thêm sản phẩm vào giỏ
+- `POST /api/user/order/checkout/from-cart` - Đặt hàng từ giỏ
+- `GET /api/user/orders` - Lịch sử đơn hàng của tôi
+
+### Admin APIs (Yêu cầu Quyền Admin)
+- `GET /api/admin/dashboard/summary` - Thống kê tổng số lượng (Users, Products, Orders)
+- `GET /api/admin/dashboard/revenue-by-month` - Báo cáo doanh thu theo tháng
+- `GET /api/admin/accounts` - Quản lý tài khoản người dùng
+- `POST /api/admin/product` - Tạo sản phẩm mới (tải ảnh lên Cloudinary)
+- `PUT /api/admin/products/{id}` - Cập nhật thông tin sản phẩm
+- `GET /api/admin/orders` - Xem toàn bộ danh sách đơn hàng
+- `PUT /api/admin/orders/{id}/status` - Cập nhật trạng thái giao hàng
+
+---
+
+## Tác giả & Đóng góp
+- Phát triển bởi **CTRANLAM**.
+- Phục dựng và tái cấu trúc sang React Feature-first bởi **Antigravity AI Assistant**.
