@@ -12,18 +12,23 @@ import com.sports4u.sports4u_backend.service.ICloudinaryService;
 import com.sports4u.sports4u_backend.service.IProductService;
 import com.sports4u.sports4u_backend.utils.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,16 +41,17 @@ public class ProductServiceImpl implements IProductService {
 
     private final ICloudinaryService cloudinaryService;
 
+    @Value("${recommendation.service.url}")
+    private String recommendationServiceUrl;
 
     @Override
-    @Cacheable(
-        value = "productList",
-        key = "#categoryId + '-' + (#minPrice != null ? #minPrice : 'null') + '-' + (#maxPrice != null ? #maxPrice : 'null') + '-' + (#inStock != null ? #inStock : 'null') + '-' + (#sortBy != null ? #sortBy : 'null') + '-' + #page + '-' + #size"
-    )
+    @Cacheable(value = "productList", key = "#categoryId + '-' + (#minPrice != null ? #minPrice : 'null') + '-' + (#maxPrice != null ? #maxPrice : 'null') + '-' + (#inStock != null ? #inStock : 'null') + '-' + (#sortBy != null ? #sortBy : 'null') + '-' + #page + '-' + #size")
     public PageResponse<ProductDTO> getProductsByCategory(Long categoryId, BigDecimal minPrice, BigDecimal maxPrice,
-                                                         Boolean inStock, String sortBy, int page, int size) {
-        System.out.println("Fetching products from database for category: " + categoryId + ", filters: minPrice=" + minPrice + ", maxPrice=" + maxPrice + ", inStock=" + inStock + ", sortBy=" + sortBy + ", page: " + page);
-        
+            Boolean inStock, String sortBy, int page, int size) {
+        System.out.println(
+                "Fetching products from database for category: " + categoryId + ", filters: minPrice=" + minPrice
+                        + ", maxPrice=" + maxPrice + ", inStock=" + inStock + ", sortBy=" + sortBy + ", page: " + page);
+
         Sort sort = Sort.by("productId").descending();
         if ("price-asc".equalsIgnoreCase(sortBy)) {
             sort = Sort.by("price").ascending();
@@ -54,12 +60,11 @@ public class ProductServiceImpl implements IProductService {
         } else if ("name-asc".equalsIgnoreCase(sortBy)) {
             sort = Sort.by("productName").ascending();
         }
-        
+
         Pageable pageable = PageRequest.of(page - 1, size, sort);
 
         Page<ProductEntity> productPage = productRepository.findAllWithFilters(
-                null, categoryId, inStock, null, minPrice, maxPrice, pageable
-        );
+                null, categoryId, inStock, null, minPrice, maxPrice, pageable);
 
         List<ProductDTO> products = productPage.getContent()
                 .stream()
@@ -76,7 +81,6 @@ public class ProductServiceImpl implements IProductService {
                 .build();
     }
 
-
     @Override
     @Cacheable(value = "productList", key = "'admin-' + #categoryId + '-' + #page + '-' + #size")
     public PageResponse<ProductAdminDTO> getProductsByCategoryForAdmin(Long categoryId, int page, int size) {
@@ -84,13 +88,10 @@ public class ProductServiceImpl implements IProductService {
         Pageable pageable = PageRequest.of(
                 page - 1,
                 size,
-                Sort.by("productId").descending()
-        );
+                Sort.by("productId").descending());
 
-        Page<ProductEntity> productPage =
-                productRepository.findByCategoryEntity_CategoryIdAndIsDeletedFalse(
-                        categoryId, pageable
-                );
+        Page<ProductEntity> productPage = productRepository.findByCategoryEntity_CategoryIdAndIsDeletedFalse(
+                categoryId, pageable);
 
         List<ProductAdminDTO> products = productPage.getContent()
                 .stream()
@@ -110,10 +111,11 @@ public class ProductServiceImpl implements IProductService {
 
     @Override
     public PageResponse<ProductAdminDTO> getAllProductsForAdmin(String keyword, Long categoryId, String stockStatus,
-                                                               Boolean isPopular, BigDecimal minPrice, BigDecimal maxPrice,
-                                                               int page, int size) {
+            Boolean isPopular, BigDecimal minPrice, BigDecimal maxPrice,
+            int page, int size) {
         // NOTE: Do NOT pass Sort to Pageable when using a native query —
-        // Spring Data JPA cannot inject Sort into native SQL and will throw an exception.
+        // Spring Data JPA cannot inject Sort into native SQL and will throw an
+        // exception.
         // ORDER BY is already hardcoded in the query.
         Pageable pageable = PageRequest.of(page - 1, size);
 
@@ -129,8 +131,7 @@ public class ProductServiceImpl implements IProductService {
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
 
         Page<ProductEntity> productPage = productRepository.findAllWithFilters(
-                kw, categoryId, inStock, isPopular, minPrice, maxPrice, pageable
-        );
+                kw, categoryId, inStock, isPopular, minPrice, maxPrice, pageable);
 
         List<ProductAdminDTO> products = productPage.getContent()
                 .stream()
@@ -148,13 +149,12 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
-    @CacheEvict(value = {"productDetail", "productList"}, allEntries = true)
+    @CacheEvict(value = { "productDetail", "productList" }, allEntries = true)
     public ProductAdminDTO createProduct(ProductRequestDTO data, MultipartFile imageFile) {
         System.out.println("Creating new product and clearing cache");
         boolean exists = productRepository
                 .existsByProductNameIgnoreCaseAndCategoryEntity_CategoryIdAndIsDeletedFalse(
-                        data.getProductName(), data.getCategoryId()
-                );
+                        data.getProductName(), data.getCategoryId());
 
         if (exists) {
             throw new IllegalArgumentException("Sản phẩm đã tồn tại trong danh mục");
@@ -201,7 +201,7 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
-    @CacheEvict(value = {"productDetail", "productList"}, allEntries = true)
+    @CacheEvict(value = { "productDetail", "productList" }, allEntries = true)
     public ProductAdminDTO updateProduct(Long id, ProductRequestDTO data, MultipartFile imageFile) {
         System.out.println("Updating product and clearing cache: " + id);
 
@@ -229,9 +229,8 @@ public class ProductServiceImpl implements IProductService {
         return ProductEntityToDTO.convertProductAdminDTO(product);
     }
 
-
     @Override
-    @CacheEvict(value = {"productDetail", "productList", "dashboardSummary", "productByCategory"}, allEntries = true)
+    @CacheEvict(value = { "productDetail", "productList", "dashboardSummary", "productByCategory" }, allEntries = true)
     public void deleteProduct(Long productId) throws IllegalArgumentException {
         System.out.println("Deleting product and clearing cache: " + productId);
         ProductEntity productEntity = productRepository.findById(productId)
@@ -254,9 +253,11 @@ public class ProductServiceImpl implements IProductService {
 
     @Override
     public PageResponse<ProductDTO> searchProducts(String keyword, BigDecimal minPrice, BigDecimal maxPrice,
-                                                   Boolean inStock, String sortBy, int page, int size) {
-        System.out.println("Searching products from database with keyword: " + keyword + ", filters: minPrice=" + minPrice + ", maxPrice=" + maxPrice + ", inStock=" + inStock + ", sortBy=" + sortBy + ", page: " + page);
-        
+            Boolean inStock, String sortBy, int page, int size) {
+        System.out
+                .println("Searching products from database with keyword: " + keyword + ", filters: minPrice=" + minPrice
+                        + ", maxPrice=" + maxPrice + ", inStock=" + inStock + ", sortBy=" + sortBy + ", page: " + page);
+
         Sort sort = Sort.by("productId").descending();
         if ("price-asc".equalsIgnoreCase(sortBy)) {
             sort = Sort.by("price").ascending();
@@ -265,13 +266,12 @@ public class ProductServiceImpl implements IProductService {
         } else if ("name-asc".equalsIgnoreCase(sortBy)) {
             sort = Sort.by("productName").ascending();
         }
-        
+
         Pageable pageable = PageRequest.of(page - 1, size, sort);
 
         String kw = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         Page<ProductEntity> productPage = productRepository.findAllWithFilters(
-                kw, null, inStock, null, minPrice, maxPrice, pageable
-        );
+                kw, null, inStock, null, minPrice, maxPrice, pageable);
 
         List<ProductDTO> products = productPage.getContent()
                 .stream()
@@ -289,7 +289,8 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
-    public PageResponse<ProductDTO> getProductsPopularByCategory(Long categoryId, int page, int size) throws IllegalArgumentException {
+    public PageResponse<ProductDTO> getProductsPopularByCategory(Long categoryId, int page, int size)
+            throws IllegalArgumentException {
 
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("productId").descending());
         Page<ProductEntity> productPage = productRepository
@@ -311,25 +312,77 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<ProductDTO> getRelatedProducts(Long id) throws IllegalArgumentException {
-        System.out.println("Fetching related products from database for product ID: " + id);
+        System.out.println("Fetching related products for product ID: " + id);
         ProductEntity current = productRepository.findByProductIdAndIsDeletedFalse(id);
         if (current == null) {
             throw new IllegalArgumentException("Sản phẩm không tồn tại");
         }
-        Long categoryId = current.getCategoryEntity().getCategoryId();
-        List<ProductEntity> relatedEntities = new java.util.ArrayList<>(productRepository
-                .findTop6ByCategoryEntity_CategoryIdAndProductIdNotAndIsDeletedFalse(categoryId, id));
 
-        // Fallback: If less than 4 related products, add other active products
-        if (relatedEntities.size() < 4) {
-            List<ProductEntity> fallbackEntities = productRepository.findTop6ByProductIdNotAndIsDeletedFalse(id);
-            for (ProductEntity fallback : fallbackEntities) {
-                if (relatedEntities.size() >= 6) {
-                    break;
+        List<ProductEntity> relatedEntities = null;
+
+        // Try calling the Python KNN Recommendation service
+        try {
+            System.out.println(
+                    "Calling Python KNN recommendation service at: " + recommendationServiceUrl + "/recommend/" + id);
+            RestClient restClient = RestClient.builder()
+                    .baseUrl(recommendationServiceUrl)
+                    .build();
+
+            // The FastAPI response format is: {"status": "success", "data": [id1, id2,
+            // ...]}
+            Map<String, Object> response = restClient.get()
+                    .uri("/recommend/{id}", id)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<Map<String, Object>>() {
+                    });
+
+            if (response != null && "success".equals(response.get("status"))) {
+                List<Integer> recommendedIds = (List<Integer>) response.get("data");
+                if (recommendedIds != null && !recommendedIds.isEmpty()) {
+                    List<Long> ids = recommendedIds.stream()
+                            .map(Integer::longValue)
+                            .collect(Collectors.toList());
+
+                    // Fetch entities and preserve the order returned by KNN
+                    List<ProductEntity> fetchedEntities = productRepository.findAllById(ids);
+
+                    // Sort fetchedEntities to match the exact order of recommendedIds
+                    Map<Long, ProductEntity> entityMap = fetchedEntities.stream()
+                            .collect(Collectors.toMap(ProductEntity::getProductId, entity -> entity));
+
+                    relatedEntities = new java.util.ArrayList<>();
+                    for (Long reqId : ids) {
+                        ProductEntity entity = entityMap.get(reqId);
+                        if (entity != null && !entity.getIsDeleted()) {
+                            relatedEntities.add(entity);
+                        }
+                    }
+                    System.out.println("Successfully retrieved " + relatedEntities.size()
+                            + " related products from Python ML Service.");
                 }
-                if (!relatedEntities.contains(fallback)) {
-                    relatedEntities.add(fallback);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to fetch recommendations from Python ML service: " + e.getMessage());
+            System.out.println("Falling back to Database category-based related products query.");
+        }
+
+        // Fallback Logic: If Python service failed or returned empty list
+        if (relatedEntities == null || relatedEntities.isEmpty()) {
+            Long categoryId = current.getCategoryEntity().getCategoryId();
+            relatedEntities = new java.util.ArrayList<>(productRepository
+                    .findTop6ByCategoryEntity_CategoryIdAndProductIdNotAndIsDeletedFalse(categoryId, id));
+
+            if (relatedEntities.size() < 4) {
+                List<ProductEntity> fallbackEntities = productRepository.findTop6ByProductIdNotAndIsDeletedFalse(id);
+                for (ProductEntity fallback : fallbackEntities) {
+                    if (relatedEntities.size() >= 6) {
+                        break;
+                    }
+                    if (!relatedEntities.contains(fallback)) {
+                        relatedEntities.add(fallback);
+                    }
                 }
             }
         }

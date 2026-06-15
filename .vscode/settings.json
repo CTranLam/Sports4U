@@ -1,0 +1,7 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/sports4u-recommendation/venv/bin/python",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/sports4u-recommendation/venv/lib/python3.12/site-packages",
+    "${workspaceFolder}/sports4u-recommendation"
+  ]
+}

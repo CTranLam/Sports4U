@@ -64,6 +64,25 @@ services:
       - app-network
 
   # ================================
+  # KNN Recommendation Service
+  # ================================
+  recommendation:
+    build:
+      context: ../sports4u-recommendation
+    container_name: sports4u-recommendation
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file: .env
+    environment:
+      DB_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # ================================
   # Spring Boot Backend
   # ================================
   backend:
@@ -84,6 +103,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      recommendation:
+        condition: service_started
     networks:
       - app-network
 
